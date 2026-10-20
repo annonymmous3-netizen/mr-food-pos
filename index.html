@@ -41,10 +41,8 @@
     .sidebar { width: 260px; background-color: var(--white); color: var(--text-dark); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); overflow-y: auto; }
     .sidebar-header { padding: 15px; background-color: var(--arctic); font-size: 13px; font-weight: bold; text-transform: uppercase; }
     .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
-    
     .nav-item { padding: 13px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease; font-size: 14px; font-weight: 500; user-select: none; }
     .nav-item:hover { background-color: var(--arctic); color: var(--text-dark); }
-    .nav-item:active { transform: scale(0.98); background-color: var(--sapphire); color: white; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
     .nav-item.active { background-color: var(--arctic); color: var(--text-dark); font-weight: bold; border-left: 4px solid var(--sapphire-dark); }
     .nav-item.hidden-role { display: none !important; }
 
@@ -91,6 +89,9 @@
     .alert-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .badge-counter { background: var(--danger); color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; margin-left: 5px; }
     
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; }
+    .modal-card { background: white; padding: 20px; border-radius: 8px; max-width: 380px; width: 90%; max-height: 90vh; overflow-y: auto; }
+
     @media print {
       body * { visibility: hidden; }
       .receipt-container, .receipt-container * { visibility: visible; }
@@ -115,7 +116,7 @@
       <label>Username:</label>
       <input type="text" id="loginUser" value="ADMIN">
       <label>Password:</label>
-      <input type="password" id="loginPass" placeholder="Enter password manually (e.g. 123456)">
+      <input type="password" id="loginPass" placeholder="Enter password">
       
       <button class="btn" onclick="processLogin()">Login</button>
       <div style="margin-top: 15px; text-align: center;">
@@ -127,13 +128,13 @@
     <div id="firstTimeCard" class="auth-card" style="display: none;">
       <div class="auth-header">
         <h2>Create New Admin Password</h2>
-        <p>First-time default password verified. Please set your own permanent password.</p>
+        <p>First-time default login verified. Please set a strong permanent password containing uppercase, lowercase, numbers, and symbols.</p>
       </div>
       <div id="firstTimeAlert" class="alert-box alert-danger"></div>
       <label>Username:</label>
       <input type="text" id="setupAdminUser" value="ADMIN" readonly style="background:#f0f0f0;">
       <label>New Password:</label>
-      <input type="password" id="setupNewPass" placeholder="Enter new password">
+      <input type="password" id="setupNewPass" placeholder="e.g. Cafe@2026!Naveed">
       <label>Confirm New Password:</label>
       <input type="password" id="setupConfirmPass" placeholder="Confirm new password">
       <button class="btn btn-success" onclick="saveNewAdminPassword()">Save New Password & Continue 🚀</button>
@@ -151,7 +152,7 @@
       <label>Master Security Password Key:</label>
       <input type="password" id="forgotMasterKey" placeholder="Enter Master Key">
       <label>New Password:</label>
-      <input type="password" id="forgotNewPass" placeholder="Enter New Password">
+      <input type="password" id="forgotNewPass" placeholder="Enter New Strong Password">
       <button class="btn btn-success" onclick="processMasterReset()">Update Password</button>
       <button class="btn btn-secondary" style="margin-top: 5px;" onclick="showLoginCard()">Back to Login</button>
     </div>
@@ -315,7 +316,6 @@
         <!-- Online Orders Panel -->
         <div id="onlinePanel" class="panel-section">
           <div class="panel-title">Online Orders Management</div>
-          
           <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
             <button class="btn btn-sm" id="btnOnlineTabPending" onclick="switchOnlineTab('pending')">📥 Pending Incoming Orders</button>
             <button class="btn btn-sm btn-secondary" id="btnOnlineTabCompleted" onclick="switchOnlineTab('completed')">✅ Completed Orders Archive</button>
@@ -325,7 +325,6 @@
             </div>
           </div>
 
-          <!-- Pending Orders Sub-View -->
           <div id="onlinePendingSubPanel">
             <table class="data-table">
               <thead>
@@ -345,7 +344,6 @@
             </table>
           </div>
 
-          <!-- Completed Orders Sub-View -->
           <div id="onlineCompletedSubPanel" style="display: none;">
             <table class="data-table">
               <thead>
@@ -383,12 +381,7 @@
           <h4 style="margin-top: 25px;">Current Menu Items</h4>
           <table class="data-table">
             <thead>
-              <tr>
-                <th>Image</th>
-                <th>Item Name</th>
-                <th>Price (Rs.)</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>Image</th><th>Item Name</th><th>Price (Rs.)</th><th>Actions</th></tr>
             </thead>
             <tbody id="menuTableBody"></tbody>
           </table>
@@ -415,13 +408,7 @@
           <h4 style="margin-top: 25px;">Active Deals & Offers</h4>
           <table class="data-table">
             <thead>
-              <tr>
-                <th>Image</th>
-                <th>Title & Description</th>
-                <th>Price</th>
-                <th>Valid Until</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>Image</th><th>Title & Description</th><th>Price</th><th>Valid Until</th><th>Actions</th></tr>
             </thead>
             <tbody id="dealsTableBody"></tbody>
           </table>
@@ -434,6 +421,7 @@
             <label>Select View Period:</label>
             <select id="timeFilter" onchange="toggleCustomDate()">
               <option value="today">Today</option>
+              <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="year">This Year</option>
               <option value="custom">Custom Date Range</option>
@@ -459,10 +447,6 @@
             <button class="btn btn-success" style="margin-top: 5px;" onclick="downloadSalesSelectedFormat()">📥 Download Sales Report</button>
           </div>
           <div class="analytics-box" style="max-width: 500px;">
-            <div class="stat-row">
-              <span id="statCountLabel">Total Receipts (Orders):</span>
-              <strong id="statCount">0</strong>
-            </div>
             <div class="stat-row" id="statQtyRow" style="display:none;">
               <span>Total Units Sold:</span>
               <strong id="statQty">0</strong>
@@ -480,8 +464,8 @@
           <div style="max-width: 500px;">
             <label>Item / Ingredient Name:</label>
             <input type="text" id="invItemName" placeholder="e.g. Chicken Buns">
-            <label>Stock Quantity:</label>
-            <input type="number" id="invQty" placeholder="e.g. 100">
+            <label>Stock Quantity / Weight / Litre:</label>
+            <input type="text" id="invQty" placeholder="e.g. 50 kg or 20 packets or 5 L">
             <label>Unit Cost (Rs.):</label>
             <input type="number" id="invCost" placeholder="e.g. 25">
             <button class="btn btn-success" onclick="saveInventoryItem()">Save Stock Item</button>
@@ -512,7 +496,7 @@
           </div>
           <table class="data-table" style="margin-top:20px;">
             <thead>
-              <tr><th>Item Name</th><th>Stock Qty</th><th>Unit Cost</th><th>Total Value</th><th>Action</th></tr>
+              <tr><th>Item Name</th><th>Stock Qty/Wt/Litre</th><th>Unit Cost</th><th>Total Value</th><th>Action</th></tr>
             </thead>
             <tbody id="inventoryTableBody"></tbody>
           </table>
@@ -525,7 +509,7 @@
             <label>New Username:</label>
             <input type="text" id="newUsername" placeholder="e.g. cashier1">
             <label>New Password:</label>
-            <input type="password" id="newUserPass" placeholder="Enter User Password">
+            <input type="password" id="newUserPass" placeholder="Enter Password (Uppercase, lowercase, number, symbol)">
             <label>Role:</label>
             <select id="newUserRole">
               <option value="Cashier">Cashier</option>
@@ -544,13 +528,30 @@
         <!-- Backup & Restore Panel -->
         <div id="backupPanel" class="panel-section admin-only">
           <div class="panel-title">Backup & Restore System Data</div>
-          <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
-            <button class="btn btn-excel" onclick="exportDataExcel()">📊 Export to Excel</button>
-            <button class="btn btn-pdf" onclick="exportDataPDF()">📄 Export to PDF</button>
-            <button class="btn btn-word" onclick="exportToWord()">📝 Export to Word (.doc)</button>
-            <button class="btn btn-secondary" onclick="exportJSONBackup()">💾 Download JSON Backup</button>
+          <div style="max-width: 500px; background: var(--bg-light); padding: 15px; border-radius: 6px; border: 1px solid var(--sapphire);">
+            <label>Select Backup Format:</label>
+            <select id="backupFormatSelect">
+              <option value="json">JSON Database File (.json)</option>
+              <option value="excel">Excel (.xlsx)</option>
+            </select>
+            <label>Select Backup Period:</label>
+            <select id="backupPeriodSelect" onchange="toggleBackupCustomDate()">
+              <option value="all">All Time Data</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+            <div id="backupCustomDateRange" style="display: none;">
+              <label>From Date:</label>
+              <input type="date" id="backupStartDate">
+              <label>To Date:</label>
+              <input type="date" id="backupEndDate">
+            </div>
+            <button class="btn btn-success" style="margin-top: 10px;" onclick="downloadSelectedBackup()">💾 Download Backup File</button>
           </div>
-          <label style="margin-top:20px;">Restore from JSON Backup:</label>
+
+          <label style="margin-top:20px;">Restore from JSON Backup File:</label>
           <input type="file" id="restoreFile" accept=".json" style="padding:6px;">
           <button class="btn btn-danger" onclick="restoreJSONBackup()">Restore Database</button>
 
@@ -566,12 +567,26 @@
             <h4>Change Current User Password</h4>
             <label>Current Password:</label>
             <input type="password" id="currentPassInput">
-            <label>New Password:</label>
-            <input type="password" id="newPassInput" placeholder="Enter New Password">
+            <label>New Password (Must contain uppercase, lowercase, number, symbol):</label>
+            <input type="password" id="newPassInput" placeholder="e.g. New@2026!Pass">
             <button class="btn btn-success" onclick="changeMyPassword()">Update Password</button>
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- View Receipt Modal -->
+  <div id="viewReceiptModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin:0; color:var(--sapphire-dark);">Receipt Viewer</h3>
+        <button class="btn btn-danger btn-sm" onclick="closeReceiptModal()">✕ Close</button>
+      </div>
+      <div id="modalReceiptContent" style="display: flex; justify-content: center;"></div>
+      <div style="margin-top: 15px; text-align: center;">
+        <button class="btn btn-success" onclick="reprintModalReceipt()">🖨️ Reprinting Receipt</button>
       </div>
     </div>
   </div>
@@ -582,6 +597,7 @@
   const defaultFoodImg = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150';
 
   let currentUser = null;
+  let currentModalReceiptObj = null;
   
   // Initialize default ADMIN user with password '123456' and isFirstTime flag
   let users = JSON.parse(localStorage.getItem('cafeUsers'));
@@ -605,6 +621,15 @@
   let contactPhone = '03000878384';
   let currentBill = [];
   let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
+
+  function validateStrongPassword(pass) {
+    // Must contain uppercase, lowercase, number, and symbol/sign
+    const hasUpper = /[A-Z]/.test(pass);
+    const hasLower = /[a-z]/.test(pass);
+    const hasNum = /\d/.test(pass);
+    const hasSym = /[^\w\s]/.test(pass);
+    return hasUpper && hasLower && hasNum && hasSym && pass.length >= 6;
+  }
 
   function initSystem() {
     document.getElementById('loginCard').style.display = 'block';
@@ -630,15 +655,15 @@
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value;
     const alertBox = document.getElementById('loginAlert');
+    alertBox.style.display = 'none';
 
     const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
     if (!found) { 
-      alertBox.innerText = "Invalid username or password. Default Username is ADMIN and Password is 123456."; 
+      alertBox.innerText = "Invalid username or password."; 
       alertBox.style.display = 'block'; 
       return; 
     }
 
-    // Check if logging in for the first time with default password
     if (found.isFirstTime) {
       currentUser = found;
       document.getElementById('loginCard').style.display = 'none';
@@ -664,9 +689,10 @@
     const newP = document.getElementById('setupNewPass').value;
     const confirmP = document.getElementById('setupConfirmPass').value;
     const alertBox = document.getElementById('firstTimeAlert');
+    alertBox.style.display = 'none';
 
-    if (!newP || newP.length < 4) {
-      alertBox.innerText = "Please enter a password with at least 4 characters.";
+    if (!validateStrongPassword(newP)) {
+      alertBox.innerText = "Password must be at least 6 characters and contain uppercase, lowercase letters, numbers, and symbols/signs.";
       alertBox.style.display = 'block';
       return;
     }
@@ -696,14 +722,15 @@
     const mKey = document.getElementById('forgotMasterKey').value;
     const newPass = document.getElementById('forgotNewPass').value;
     const alertBox = document.getElementById('forgotAlert');
+    alertBox.style.display = 'none';
 
     if (mKey !== MASTER_KEY) { 
       alertBox.innerText = "Invalid Master Security Key."; 
       alertBox.style.display = 'block'; 
       return; 
     }
-    if (!newPass || newPass.length < 4) { 
-      alertBox.innerText = "Password must be at least 4 characters long."; 
+    if (!validateStrongPassword(newPass)) { 
+      alertBox.innerText = "Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols."; 
       alertBox.style.display = 'block'; 
       return; 
     }
@@ -723,7 +750,7 @@
     const cur = document.getElementById('currentPassInput').value;
     const nxt = document.getElementById('newPassInput').value;
     if (cur !== currentUser.pass) return alert("Current password is incorrect.");
-    if (!nxt || nxt.length < 4) return alert("New password must be at least 4 characters.");
+    if (!validateStrongPassword(nxt)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols.");
     currentUser.pass = nxt;
     delete currentUser.isFirstTime;
     currentUser.lastUpdated = new Date().toISOString();
@@ -753,7 +780,6 @@
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
     document.getElementById('invoiceNo').innerText = String(invoiceCounter).padStart(6, '0');
     
-    // Auto Refresh Pending Orders Every 7 Seconds
     setInterval(() => fetchOnlineOrders(false), 7000);
   }
 
@@ -842,6 +868,164 @@
     resetCurrentBill();
   }
 
+  // Receipts Period & Search Filters
+  function toggleReceiptsCustomDate() {
+    const val = document.getElementById('receiptsPeriodFilter').value;
+    document.getElementById('receiptsCustomDateRange').style.display = val === 'custom' ? 'block' : 'none';
+  }
+
+  function renderAllReceiptsTable() {
+    const tbody = document.getElementById('allReceiptsTableBody');
+    if (!tbody) return;
+    
+    const period = document.getElementById('receiptsPeriodFilter').value;
+    const searchVal = document.getElementById('receiptsSearchInput').value.trim().toLowerCase();
+    
+    let filtered = [...sales];
+    const now = new Date();
+
+    if (period === 'today') {
+      const todayStr = now.toDateString();
+      filtered = filtered.filter(s => new Date(s.date).toDateString() === todayStr);
+    } else if (period === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
+    } else if (period === 'month') {
+      filtered = filtered.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'custom') {
+      const start = document.getElementById('receiptsStartDate').value;
+      const end = document.getElementById('receiptsEndDate').value;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(s => {
+          const d = new Date(s.date);
+          return d >= startDate && d <= endDate;
+        });
+      }
+    }
+
+    if (searchVal) {
+      filtered = filtered.filter(s => 
+        String(s.invoiceNo).toLowerCase().includes(searchVal) ||
+        String(s.customer).toLowerCase().includes(searchVal) ||
+        String(s.phone).toLowerCase().includes(searchVal)
+      );
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">No matching receipts found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.slice().reverse().map(r => `
+      <tr>
+        <td>#${r.invoiceNo}</td>
+        <td>${new Date(r.date).toLocaleString()}</td>
+        <td>${r.customer}</td>
+        <td>${r.phone}</td>
+        <td><b>Rs. ${r.total}</b></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${r.invoiceNo}')">👁️ View Receipt</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function viewReceipt(invNo) {
+    const found = sales.find(s => String(s.invoiceNo) === String(invNo));
+    if (!found) return;
+    currentModalReceiptObj = found;
+
+    const modalHTML = `
+      <div class="receipt-container" style="width: 100%;">
+        <div class="text-center">
+          <h3 style="margin:2px 0;">MR FOOD CAFE NAVEED</h3>
+          <p style="font-size:11px; margin:2px 0;">Contact / Jazz Cash: ${contactPhone}</p>
+          <p style="font-size:10px; margin:2px 0;">Home delivery available</p>
+        </div>
+        <div class="dashed-line"></div>
+        <div class="text-center" style="font-size: 12px;">SALES PAID RECEIPT</div>
+        <div class="dashed-line"></div>
+        <table class="info-table">
+          <tr>
+            <td>Invoice #: ${found.invoiceNo}</td>
+            <td class="text-right">${new Date(found.date).toLocaleDateString()}</td>
+          </tr>
+          <tr>
+            <td colspan="2">Customer: ${found.customer}</td>
+          </tr>
+          <tr>
+            <td colspan="2">Phone: ${found.phone}</td>
+          </tr>
+        </table>
+        <table class="item-table" style="margin-top:8px;">
+          <thead>
+            <tr>
+              <th class="text-left">Qty</th>
+              <th class="text-left">Item</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${found.items.map(i => `<tr><td>${i.qty}</td><td>${i.name}</td><td class="text-right">${i.price}</td><td class="text-right">${i.total}</td></tr>`).join('')}
+          </tbody>
+        </table>
+        <div class="dashed-line"></div>
+        <table class="totals-table">
+          <tr>
+            <td>Net Amount:</td>
+            <td class="text-right"><b>Rs. ${found.total}</b></td>
+          </tr>
+        </table>
+        <div class="dashed-line"></div>
+        <div class="text-center" style="font-size: 10px; margin-top: 10px;">
+          <p style="margin:2px 0;">Your trust is our success</p>
+          <p style="margin:2px 0;">📍 Bhiria Road Sindh, Pakistan</p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('modalReceiptContent').innerHTML = modalHTML;
+    document.getElementById('viewReceiptModal').style.display = 'flex';
+  }
+
+  function closeReceiptModal() {
+    document.getElementById('viewReceiptModal').style.display = 'none';
+  }
+
+  function reprintModalReceipt() {
+    if (!currentModalReceiptObj) return;
+    document.getElementById('invoiceNo').innerText = currentModalReceiptObj.invoiceNo;
+    document.getElementById('receiptCustomerName').innerText = currentModalReceiptObj.customer;
+    document.getElementById('receiptCustomerPhoneDisplay').innerText = currentModalReceiptObj.phone;
+    currentBill = currentModalReceiptObj.items;
+    renderBillList();
+    window.print();
+    // Reset current bill back to empty so it doesn't affect active POS entry
+    currentBill = [];
+    renderBillList();
+  }
+
+  // Online Orders Tabs & Completion
+  function switchOnlineTab(tab) {
+    if (tab === 'pending') {
+      document.getElementById('onlinePendingSubPanel').style.display = 'block';
+      document.getElementById('onlineCompletedSubPanel').style.display = 'none';
+      document.getElementById('btnOnlineTabPending').classList.remove('btn-secondary');
+      document.getElementById('btnOnlineTabCompleted').classList.add('btn-secondary');
+    } else {
+      document.getElementById('onlinePendingSubPanel').style.display = 'none';
+      document.getElementById('onlineCompletedSubPanel').style.display = 'block';
+      document.getElementById('btnOnlineTabCompleted').classList.remove('btn-secondary');
+      document.getElementById('btnOnlineTabPending').classList.add('btn-secondary');
+      renderCompletedOnlineOrdersTable();
+    }
+  }
+
   async function fetchOnlineOrders(userAlert = false) {
     try {
       let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
@@ -882,6 +1066,36 @@
         <td><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete Order</button></td>
       </tr>
     `).join('');
+  }
+
+  function renderCompletedOnlineOrdersTable() {
+    const tbody = document.getElementById('completedOrdersTableBody');
+    if (!tbody) return;
+    if (completedOnlineOrders.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No completed online orders archive.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = completedOnlineOrders.slice().reverse().map(o => `
+      <tr>
+        <td>#${o.orderId}</td>
+        <td>${o.completedAt ? new Date(o.completedAt).toLocaleString() : 'N/A'}</td>
+        <td>${o.customerName}</td>
+        <td>${o.phone}</td>
+        <td>${o.items.map(i => `${i.qty}x${i.name}`).join(', ')}</td>
+        <td><b>Rs. ${o.totalAmount}</b></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${o.orderId}')">👁️ View Receipt</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function filterOnlineOrders() {
+    const q = document.getElementById('onlineSearchInput').value.trim().toLowerCase();
+    const filtered = pendingOnlineOrders.filter(o => 
+      String(o.orderId).toLowerCase().includes(q) ||
+      String(o.customerName).toLowerCase().includes(q) ||
+      String(o.phone).toLowerCase().includes(q)
+    );
+    renderPendingOnlineOrdersTable(filtered);
   }
 
   async function markOrderCompleted(orderId) {
@@ -932,7 +1146,8 @@
     }
 
     fetchOnlineOrders(false);
-    alert(`Order accepted & assigned Invoice #${assignedInvoiceNo}!`);
+    renderAllReceiptsTable();
+    alert(`Order accepted & assigned Invoice #${assignedInvoiceNo}! Added to Sales Paid Receipts.`);
   }
 
   async function syncAllToCloud() {
@@ -967,6 +1182,7 @@
     }
   }
 
+  // Menu, Deals, Inventory & Analytics
   function renderMenuTable() {
     const tbody = document.getElementById('menuTableBody');
     if (!tbody) return;
@@ -1110,7 +1326,7 @@
         <td>${i.name}</td>
         <td>${i.qty}</td>
         <td>Rs. ${i.cost}</td>
-        <td>Rs. ${i.qty * i.cost}</td>
+        <td>Rs. ${isNaN(parseFloat(i.qty)) ? '0' : (parseFloat(i.qty) * i.cost)}</td>
         <td><button class="btn btn-danger btn-sm" onclick="deleteInventory(${idx})">Delete</button></td>
       </tr>
     `).join('');
@@ -1118,9 +1334,9 @@
 
   function saveInventoryItem() {
     const name = document.getElementById('invItemName').value.trim();
-    const qty = parseInt(document.getElementById('invQty').value);
+    const qty = document.getElementById('invQty').value.trim(); // Allows numbers and letters combined (e.g., 50 kg)
     const cost = parseFloat(document.getElementById('invCost').value);
-    if (!name || isNaN(qty) || isNaN(cost)) return alert("Enter valid inventory data.");
+    if (!name || !qty || isNaN(cost)) return alert("Enter valid inventory data.");
     inventory.push({ name, qty, cost, date: new Date().toISOString() });
     localStorage.setItem('cafeInventory', JSON.stringify(inventory));
     document.getElementById('invItemName').value = '';
@@ -1135,6 +1351,235 @@
     renderInventoryTable();
   }
 
+  function toggleInventoryCustomDate() {
+    const val = document.getElementById('inventoryPeriodFilter').value;
+    document.getElementById('inventoryCustomDateRange').style.display = val === 'custom' ? 'block' : 'none';
+  }
+
+  function downloadInventorySelectedFormat() {
+    const format = document.getElementById('inventoryDownloadFormat').value;
+    const period = document.getElementById('inventoryPeriodFilter').value;
+    
+    let filtered = [...inventory];
+    const now = new Date();
+
+    if (period === 'today') {
+      const todayStr = now.toDateString();
+      filtered = filtered.filter(i => new Date(i.date).toDateString() === todayStr);
+    } else if (period === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(i => new Date(i.date) >= oneWeekAgo);
+    } else if (period === 'month') {
+      filtered = filtered.filter(i => {
+        const d = new Date(i.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'custom') {
+      const start = document.getElementById('inventoryStartDate').value;
+      const end = document.getElementById('inventoryEndDate').value;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(i => {
+          const d = new Date(i.date);
+          return d >= startDate && d <= endDate;
+        });
+      }
+    }
+
+    if (filtered.length === 0) return alert("No purchase/inventory records found for the selected period.");
+
+    if (format === 'excel') {
+      let dataToExport = filtered.map(i => ({
+        "Item Name": i.name,
+        "Stock Qty / Wt / Litre": i.qty,
+        "Unit Cost (Rs.)": i.cost,
+        "Date": new Date(i.date).toLocaleDateString()
+      }));
+      let ws = XLSX.utils.json_to_sheet(dataToExport);
+      let wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Purchase Details");
+      XLSX.writeFile(wb, "Purchase_Report.xlsx");
+    } else if (format === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      let doc = new jsPDF();
+      doc.text("MR FOOD CAFE NAVEED - Purchase Report", 14, 15);
+      let tableData = filtered.map(i => [i.name, i.qty, `Rs. ${i.cost}`, new Date(i.date).toLocaleDateString()]);
+      doc.autoTable({ head: [['Item Name', 'Qty/Wt/Litre', 'Unit Cost', 'Date']], body: tableData, startY: 20 });
+      doc.save("Purchase_Report.pdf");
+    } else if (format === 'word') {
+      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Purchase Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Item Name</th><th>Qty/Wt/Litre</th><th>Unit Cost</th><th>Date</th></tr>` +
+        filtered.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${i.cost}</td><td>${new Date(i.date).toLocaleDateString()}</td></tr>`).join('') +
+        `</table></body></html>`;
+      let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = 'Purchase_Report.doc';
+      a.click();
+    }
+  }
+
+  function toggleCustomDate() {
+    const val = document.getElementById('timeFilter').value;
+    document.getElementById('customDateRange').style.display = val === 'custom' ? 'block' : 'none';
+  }
+
+  function populateAnalyticsDropdown() {
+    const sel = document.getElementById('analyticsItemSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="all">-- All Items Combined --</option>' + menu.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  }
+
+  function updateAnalytics() {
+    const period = document.getElementById('timeFilter').value;
+    const selectedItem = document.getElementById('analyticsItemSelect').value;
+    const now = new Date();
+
+    let filtered = [...sales];
+
+    if (period === 'today') {
+      const todayStr = now.toDateString();
+      filtered = filtered.filter(s => new Date(s.date).toDateString() === todayStr);
+    } else if (period === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
+    } else if (period === 'month') {
+      filtered = filtered.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'year') {
+      filtered = filtered.filter(s => new Date(s.date).getFullYear() === now.getFullYear());
+    } else if (period === 'custom') {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(s => {
+          const d = new Date(s.date);
+          return d >= startDate && d <= endDate;
+        });
+      }
+    }
+
+    let totalEarnings = 0;
+    let totalQty = 0;
+
+    if (selectedItem === 'all') {
+      document.getElementById('statQtyRow').style.display = 'none';
+      totalEarnings = filtered.reduce((acc, s) => acc + s.total, 0);
+    } else {
+      document.getElementById('statQtyRow').style.display = 'flex';
+      filtered.forEach(s => {
+        s.items.forEach(item => {
+          if (item.name === selectedItem) {
+            totalQty += item.qty;
+            totalEarnings += item.total;
+          }
+        });
+      });
+      document.getElementById('statQty').innerText = totalQty;
+    }
+
+    document.getElementById('statEarnings').innerText = totalEarnings.toFixed(2);
+  }
+
+  function downloadSalesSelectedFormat() {
+    const format = document.getElementById('salesDownloadFormat').value;
+    const period = document.getElementById('timeFilter').value;
+    const selectedItem = document.getElementById('analyticsItemSelect').value;
+    const now = new Date();
+
+    let filtered = [...sales];
+    if (period === 'today') {
+      const todayStr = now.toDateString();
+      filtered = filtered.filter(s => new Date(s.date).toDateString() === todayStr);
+    } else if (period === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
+    } else if (period === 'month') {
+      filtered = filtered.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'year') {
+      filtered = filtered.filter(s => new Date(s.date).getFullYear() === now.getFullYear());
+    } else if (period === 'custom') {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(s => {
+          const d = new Date(s.date);
+          return d >= startDate && d <= endDate;
+        });
+      }
+    }
+
+    if (filtered.length === 0) return alert("No sales records found for the selected period.");
+
+    if (format === 'excel') {
+      let dataToExport = [];
+      filtered.forEach(s => {
+        s.items.forEach(item => {
+          if (selectedItem === 'all' || item.name === selectedItem) {
+            dataToExport.push({
+              "Invoice #": s.invoiceNo,
+              "Date": new Date(s.date).toLocaleString(),
+              "Customer": s.customer,
+              "Phone": s.phone,
+              "Item Name": item.name,
+              "Qty": item.qty,
+              "Price": item.price,
+              "Total (Rs.)": item.total
+            });
+          }
+        });
+      });
+      let ws = XLSX.utils.json_to_sheet(dataToExport);
+      let wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sales Report");
+      XLSX.writeFile(wb, "Sales_Analytics_Report.xlsx");
+    } else if (format === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      let doc = new jsPDF();
+      doc.text("MR FOOD CAFE NAVEED - Sales Analytics Report", 14, 15);
+      let tableData = [];
+      filtered.forEach(s => {
+        s.items.forEach(item => {
+          if (selectedItem === 'all' || item.name === selectedItem) {
+            tableData.push([s.invoiceNo, s.customer, item.name, item.qty, `Rs. ${item.total}`, new Date(s.date).toLocaleDateString()]);
+          }
+        });
+      });
+      doc.autoTable({ head: [['Invoice', 'Customer', 'Item', 'Qty', 'Total', 'Date']], body: tableData, startY: 20 });
+      doc.save("Sales_Analytics_Report.pdf");
+    } else if (format === 'word') {
+      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Sales Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Invoice</th><th>Customer</th><th>Item</th><th>Qty</th><th>Total</th><th>Date</th></tr>`;
+      filtered.forEach(s => {
+        s.items.forEach(item => {
+          if (selectedItem === 'all' || item.name === selectedItem) {
+            htmlContent += `<tr><td>${s.invoiceNo}</td><td>${s.customer}</td><td>${item.name}</td><td>${item.qty}</td><td>Rs. ${item.total}</td><td>${new Date(s.date).toLocaleDateString()}</td></tr>`;
+          }
+        });
+      });
+      htmlContent += `</table></body></html>`;
+      let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = 'Sales_Analytics_Report.doc';
+      a.click();
+    }
+  }
+
+  // Users Management
   function renderUsersTable() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
@@ -1153,6 +1598,7 @@
     const p = document.getElementById('newUserPass').value;
     const r = document.getElementById('newUserRole').value;
     if (!u || !p) return alert("Enter username and password.");
+    if (!validateStrongPassword(p)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols/signs.");
     users.push({ username: u, pass: p, role: r, lastUpdated: new Date().toISOString() });
     localStorage.setItem('cafeUsers', JSON.stringify(users));
     document.getElementById('newUsername').value = '';
@@ -1167,46 +1613,119 @@
     renderUsersTable();
   }
 
-  function toggleCustomDate() {
-    const val = document.getElementById('timeFilter').value;
-    document.getElementById('customDateRange').style.display = val === 'custom' ? 'block' : 'none';
+  // Backup & Restore
+  function toggleBackupCustomDate() {
+    const val = document.getElementById('backupPeriodSelect').value;
+    document.getElementById('backupCustomDateRange').style.display = val === 'custom' ? 'block' : 'none';
   }
 
-  function populateAnalyticsDropdown() {
-    const sel = document.getElementById('analyticsItemSelect');
-    if (!sel) return;
-    sel.innerHTML = '<option value="all">-- All Items Combined --</option>' + menu.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-  }
+  function downloadSelectedBackup() {
+    const format = document.getElementById('backupFormatSelect').value;
+    const period = document.getElementById('backupPeriodSelect').value;
+    const now = new Date();
 
-  function renderAllReceiptsTable() {
-    const tbody = document.getElementById('allReceiptsTableBody');
-    if (!tbody) return;
-    let all = [...sales];
-    if (all.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center">No receipts found.</td></tr>';
-      return;
+    let filteredSales = [...sales];
+    if (period === 'today') {
+      const todayStr = now.toDateString();
+      filteredSales = filteredSales.filter(s => new Date(s.date).toDateString() === todayStr);
+    } else if (period === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filteredSales = filteredSales.filter(s => new Date(s.date) >= oneWeekAgo);
+    } else if (period === 'month') {
+      filteredSales = filteredSales.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+    } else if (period === 'custom') {
+      const start = document.getElementById('backupStartDate').value;
+      const end = document.getElementById('backupEndDate').value;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
+        filteredSales = filteredSales.filter(s => {
+          const d = new Date(s.date);
+          return d >= startDate && d <= endDate;
+        });
+      }
     }
-    tbody.innerHTML = all.slice().reverse().map(r => `
-      <tr>
-        <td>#${r.invoiceNo}</td>
-        <td>${new Date(r.date).toLocaleString()}</td>
-        <td>${r.customer}</td>
-        <td>${r.phone}</td>
-        <td><b>Rs. ${r.total}</b></td>
-        <td><button class="btn btn-secondary btn-sm" onclick="reprintReceipt('${r.invoiceNo}')">🖨️ Print</button></td>
-      </tr>
-    `).join('');
+
+    const backupData = {
+      users,
+      menu,
+      deals,
+      inventory,
+      sales: filteredSales,
+      completedOnlineOrders,
+      invoiceCounter
+    };
+
+    if (format === 'json') {
+      let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      let dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "CafeNaveed_Backup_" + new Date().toISOString().slice(0, 10) + ".json");
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    } else if (format === 'excel') {
+      let dataToExport = filteredSales.map(s => ({
+        "Invoice #": s.invoiceNo,
+        "Date": new Date(s.date).toLocaleString(),
+        "Customer": s.customer,
+        "Phone": s.phone,
+        "Total (Rs.)": s.total
+      }));
+      let ws = XLSX.utils.json_to_sheet(dataToExport);
+      let wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Backup Sales");
+      XLSX.writeFile(wb, "CafeNaveed_Sales_Backup.xlsx");
+    }
   }
 
-  function reprintReceipt(invNo) {
-    const found = sales.find(s => String(s.invoiceNo) === String(invNo));
-    if (!found) return;
-    document.getElementById('invoiceNo').innerText = found.invoiceNo;
-    document.getElementById('receiptCustomerName').innerText = found.customer;
-    document.getElementById('receiptCustomerPhoneDisplay').innerText = found.phone;
-    currentBill = found.items;
-    renderBillList();
-    window.print();
+  function restoreJSONBackup() {
+    const fileInput = document.getElementById('restoreFile');
+    if (!fileInput.files || fileInput.files.length === 0) return alert("Please select a JSON backup file.");
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed.menu) {
+          menu = parsed.menu;
+          localStorage.setItem('cafeMenu', JSON.stringify(menu));
+        }
+        if (parsed.deals) {
+          deals = parsed.deals;
+          localStorage.setItem('cafeDeals', JSON.stringify(deals));
+        }
+        if (parsed.sales) {
+          sales = parsed.sales;
+          localStorage.setItem('cafeSales', JSON.stringify(sales));
+        }
+        if (parsed.inventory) {
+          inventory = parsed.inventory;
+          localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+        }
+        if (parsed.users) {
+          users = parsed.users;
+          localStorage.setItem('cafeUsers', JSON.stringify(users));
+        }
+        if (parsed.completedOnlineOrders) {
+          completedOnlineOrders = parsed.completedOnlineOrders;
+          localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
+        }
+        if (parsed.invoiceCounter) {
+          invoiceCounter = parsed.invoiceCounter;
+          localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
+        }
+        alert("✅ Database restored successfully! Reloading system...");
+        location.reload();
+      } catch (err) {
+        alert("Invalid backup file format.");
+      }
+    };
+    reader.readAsText(file);
   }
 
   window.onload = initSystem;
