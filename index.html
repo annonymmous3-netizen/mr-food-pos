@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MR FOOD CAFE NAVEED - POS & ERP System</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  
+  <style>
+    :root {
+      --arctic: #BCDDDC;
+      --sapphire: #72B0AB;
+      --sapphire-dark: #58938E;
+      --text-dark: #2A3B39;
+      --bg-light: #F4F9F9;
+      --white: #FFFFFF;
+      --danger: #E74C3C;
+      --success: #2ECC71;
+      --border-color: #D3E8E7;
+      --excel-color: #1D6F42;
+      --pdf-color: #B30B00;
+      --word-color: #2B579A;
+    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+    .view-screen { display: none; }
+    .view-screen.active { display: flex; }
+    #authContainer { min-height: 100vh; width: 100%; background: linear-gradient(135deg, var(--arctic) 0%, var(--sapphire) 100%); align-items: center; justify-content: center; }
+    .auth-card { background: var(--white); padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 420px; box-sizing: border-box; }
+    .auth-header { text-align: center; margin-bottom: 20px; }
+    .auth-header h2 { margin: 0 0 5px 0; color: var(--sapphire-dark); font-size: 22px; }
+    .auth-header p { margin: 0; font-size: 13px; color: #666; }
+    .arabic-title { font-size: 20px; font-weight: bold; color: var(--sapphire-dark); text-align: center; margin-bottom: 10px; }
+    #appContainer { flex-direction: column; height: 100vh; overflow: hidden; }
+    .top-bar { background-color: var(--sapphire); color: var(--white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .top-bar .brand { font-weight: bold; font-size: 18px; }
+    .top-bar .user-info { display: flex; align-items: center; gap: 12px; }
+    .app-viewport { display: flex; flex: 1; height: calc(100vh - 50px); overflow: hidden; }
+    .sidebar { width: 260px; background-color: var(--white); color: var(--text-dark); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); overflow-y: auto; }
+    .sidebar-header { padding: 15px; background-color: var(--arctic); font-size: 13px; font-weight: bold; text-transform: uppercase; }
+    .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+    
+    .nav-item { padding: 13px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease; font-size: 14px; font-weight: 500; user-select: none; }
+    .nav-item:hover { background-color: var(--arctic); color: var(--text-dark); }
+    .nav-item:active { transform: scale(0.98); background-color: var(--sapphire); color: white; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+    .nav-item.active { background-color: var(--arctic); color: var(--text-dark); font-weight: bold; border-left: 4px solid var(--sapphire-dark); }
+    .nav-item.hidden-role { display: none !important; }
+
+    .main-content { flex: 1; background-color: var(--bg-light); padding: 20px; overflow-y: auto; }
+    .panel-section { display: none; background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
+    .panel-section.active { display: block; }
+    .panel-title { font-size: 18px; font-weight: bold; color: var(--sapphire-dark); margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--arctic); padding-bottom: 8px; }
+    label { font-size: 13px; font-weight: bold; margin-top: 10px; display: block; color: var(--text-dark); }
+    input, select, textarea { padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; border: 1px solid var(--sapphire); font-size: 13px; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--sapphire-dark); box-shadow: 0 0 0 2px rgba(114, 176, 171, 0.2); }
+    
+    button, .btn { 
+      padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; 
+      background-color: var(--sapphire); color: var(--white); font-weight: bold; border: none; cursor: pointer; 
+      transition: all 0.1s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.12); user-select: none; outline: none; display: inline-block; text-align: center;
+    }
+    button:hover, .btn:hover { background-color: var(--sapphire-dark); box-shadow: 0 4px 8px rgba(0,0,0,0.18); }
+    button:active, .btn:active { transform: translateY(2px) scale(0.98); box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); }
+
+    .btn-secondary { background-color: var(--arctic); color: var(--text-dark); }
+    .btn-secondary:hover { background-color: #a8cfce; }
+    .btn-danger { background-color: var(--danger); color: var(--white); }
+    .btn-success { background-color: var(--success); color: var(--white); }
+    .btn-excel { background-color: var(--excel-color); color: var(--white); }
+    .btn-pdf { background-color: var(--pdf-color); color: var(--white); }
+    .btn-word { background-color: var(--word-color); color: var(--white); }
+    .btn-sm { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
+    
+    .pos-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+    .receipt-container { font-family: 'Courier New', Courier, monospace; font-weight: bold; background-color: #fff; padding: 12px; border: 1px solid var(--sapphire); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 4px; width: 300px; margin: 0 auto; color: #000; box-sizing: border-box; }
+    .dashed-line { border-bottom: 1px dashed #000; margin: 6px 0; }
+    .item-table, .info-table, .totals-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .item-table th, .item-table td { padding: 3px 0; }
+    .item-table th { border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
+    .text-center { text-align: center; } .text-right { text-align: right; } .text-left { text-align: left; }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    .data-table th, .data-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; vertical-align: middle; }
+    .data-table th { background-color: var(--arctic); color: var(--text-dark); }
+    .table-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
+    .analytics-box { background: var(--bg-light); border: 1px solid var(--sapphire); padding: 12px; border-radius: 6px; margin-top: 15px; }
+    .stat-row { display: flex; justify-content: space-between; font-size: 14px; margin: 6px 0; }
+    .alert-box { padding: 10px; border-radius: 5px; font-size: 13px; margin-bottom: 10px; display: none; }
+    .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alert-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .badge-counter { background: var(--danger); color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; margin-left: 5px; }
+    
+    @media print {
+      body * { visibility: hidden; }
+      .receipt-container, .receipt-container * { visibility: visible; }
+      .receipt-container { position: absolute; left: 0; top: 0; width: 80mm !important; max-width: 80mm !important; margin: 0 !important; padding: 5px !important; border: none !important; box-shadow: none !important; font-size: 11px !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Authentication Screen -->
+  <div id="authContainer" class="view-screen active">
+    <!-- Standard Login Card -->
+    <div id="loginCard" class="auth-card">
+      <div class="arabic-title">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
+      <div class="auth-header">
+        <h2>MR FOOD CAFE NAVEED</h2>
+        <p>POS & ERP System Login</p>
+      </div>
+      <div id="loginAlert" class="alert-box alert-danger"></div>
+      
+      <label>Username:</label>
+      <input type="text" id="loginUser" value="ADMIN">
+      <label>Password:</label>
+      <input type="password" id="loginPass" placeholder="Enter password manually (e.g. 123456)">
+      
+      <button class="btn" onclick="processLogin()">Login</button>
+      <div style="margin-top: 15px; text-align: center;">
+        <a href="#" onclick="showForgotModal()" style="color: var(--sapphire-dark); font-size: 12px; text-decoration: none; font-weight: bold;">Forgot Password? Reset via Master Key</a>
+      </div>
+    </div>
+
+    <!-- Mandatory First-Time Password Setup Card -->
+    <div id="firstTimeCard" class="auth-card" style="display: none;">
+      <div class="auth-header">
+        <h2>Create New Admin Password</h2>
+        <p>First-time default password verified. Please set your own permanent password.</p>
+      </div>
+      <div id="firstTimeAlert" class="alert-box alert-danger"></div>
+      <label>Username:</label>
+      <input type="text" id="setupAdminUser" value="ADMIN" readonly style="background:#f0f0f0;">
+      <label>New Password:</label>
+      <input type="password" id="setupNewPass" placeholder="Enter new password">
+      <label>Confirm New Password:</label>
+      <input type="password" id="setupConfirmPass" placeholder="Confirm new password">
+      <button class="btn btn-success" onclick="saveNewAdminPassword()">Save New Password & Continue 🚀</button>
+    </div>
+
+    <!-- Master Key Forgot Password Card -->
+    <div id="forgotCard" class="auth-card" style="display: none;">
+      <div class="auth-header">
+        <h2>Reset Password via Master Key</h2>
+        <p>Master Key Authorization Required</p>
+      </div>
+      <div id="forgotAlert" class="alert-box alert-danger"></div>
+      <label>Select User to Reset:</label>
+      <select id="forgotUserSelect"></select>
+      <label>Master Security Password Key:</label>
+      <input type="password" id="forgotMasterKey" placeholder="Enter Master Key">
+      <label>New Password:</label>
+      <input type="password" id="forgotNewPass" placeholder="Enter New Password">
+      <button class="btn btn-success" onclick="processMasterReset()">Update Password</button>
+      <button class="btn btn-secondary" style="margin-top: 5px;" onclick="showLoginCard()">Back to Login</button>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <div id="appContainer" class="view-screen">
+    <div class="top-bar">
+      <div class="brand">MR FOOD CAFE NAVEED - ERP Dashboard</div>
+      <div class="arabic-title" style="color: #fff; margin:0; font-size:16px;">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
+      <div class="user-info">
+        <button class="btn btn-success btn-sm" onclick="syncAllToCloud()">☁️ Sync to Customer Site</button>
+        <span id="userRoleBadge" style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px;">Role: Admin</span>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Logout 🔒</button>
+      </div>
+    </div>
+
+    <div class="app-viewport">
+      <div class="sidebar">
+        <div class="sidebar-header">System Navigation</div>
+        <ul class="nav-list">
+          <li class="nav-item active" id="nav-pos" onclick="switchPanel('posPanel', this)"><span>🛒 Point of Sale (POS)</span></li>
+          <li class="nav-item" id="nav-receipts" onclick="switchPanel('receiptsPanel', this)"><span>🧾 See Receipts</span></li>
+          <li class="nav-item" id="nav-online" onclick="switchPanel('onlinePanel', this)"><span>🌐 Online Orders <span id="onlineBadge" class="badge-counter" style="display:none;">0</span></span></li>
+          <li class="nav-item admin-only" id="nav-menu" onclick="switchPanel('menuPanel', this)"><span>📋 Permanent Menu</span></li>
+          <li class="nav-item admin-only" id="nav-deals" onclick="switchPanel('dealsPanel', this)"><span>🏷️ Manage Deals & Offers</span></li>
+          <li class="nav-item admin-only" id="nav-sales" onclick="switchPanel('salesPanel', this)"><span>📊 Sales & Analytics</span></li>
+          <li class="nav-item admin-only" id="nav-inventory" onclick="switchPanel('inventoryPanel', this)"><span>📦 Inventory & Stock</span></li>
+          <li class="nav-item admin-only" id="nav-users" onclick="switchPanel('usersPanel', this)"><span>👥 User Management</span></li>
+          <li class="nav-item admin-only" id="nav-backup" onclick="switchPanel('backupPanel', this)"><span>💾 Backup & Restore</span></li>
+          <li class="nav-item" id="nav-settings" onclick="switchPanel('settingsPanel', this)"><span>⚙️ Account & Settings</span></li>
+        </ul>
+      </div>
+
+      <div class="main-content">
+        <div id="expiryWarning" class="alert-box alert-warning">
+          ⚠️ Your password has not been updated for 90 days or more. Please update your password in <b>Account & Settings</b>.
+        </div>
+        
+        <!-- POS Panel -->
+        <div id="posPanel" class="panel-section active">
+          <div class="panel-title">Point of Sale (Customer Order Entry)</div>
+          <div class="pos-grid">
+            <div>
+              <label>Select Item:</label>
+              <select id="menuSelect"></select>
+              <label>Quantity:</label>
+              <input type="number" id="itemQty" value="1" min="1">
+              <button class="btn" onclick="addSelectedMenuItem()">+ Add Item to Order</button>
+              <button class="btn btn-secondary" onclick="resetCurrentBill()">Clear Current Order</button>
+              <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+              <label>Customer Name:</label>
+              <input type="text" id="customerInput" value="Cash">
+              <label>Customer Mobile Phone:</label>
+              <input type="text" id="customerPhoneInput" placeholder="e.g. 03001234567" value="">
+              <button class="btn btn-success" style="font-size: 16px; padding: 12px; margin-top: 10px;" onclick="processAndPrint()">🖨️ PRINT & COMPLETE BILL</button>
+            </div>
+            <div>
+              <div class="receipt-container" id="printableReceipt">
+                <div class="text-center">
+                  <h3 style="margin:2px 0;">MR FOOD CAFE NAVEED</h3>
+                  <p style="font-size:11px; margin:2px 0;">Contact / Jazz Cash: <span id="receiptContactPhone">03000878384</span></p>
+                  <p style="font-size:10px; margin:2px 0;">Home delivery available</p>
+                </div>
+                <div class="dashed-line"></div>
+                <div class="text-center" style="font-size: 12px;">SALES PAID RECEIPT</div>
+                <div class="dashed-line"></div>
+                <table class="info-table">
+                  <tr>
+                    <td>Invoice #: <span id="invoiceNo">000001</span></td>
+                    <td class="text-right" id="currentDate"></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">Customer: <span id="receiptCustomerName">Cash</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">Phone: <span id="receiptCustomerPhoneDisplay">N/A</span></td>
+                  </tr>
+                </table>
+                <table class="item-table" style="margin-top:8px;">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Qty</th>
+                      <th class="text-left">Item</th>
+                      <th class="text-right">Price</th>
+                      <th class="text-right">Total</th>
+                      <th class="no-print"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="itemList"></tbody>
+                </table>
+                <div class="dashed-line"></div>
+                <table class="totals-table">
+                  <tr>
+                    <td>Sub Total:</td>
+                    <td class="text-right" id="subTotal">0.00</td>
+                  </tr>
+                  <tr>
+                    <td><b>Net Amount:</b></td>
+                    <td class="text-right"><b id="netAmount">0.00</b></td>
+                  </tr>
+                </table>
+                <div class="dashed-line"></div>
+                <div class="text-center" style="font-size: 10px; margin-top: 10px;">
+                  <p style="margin:2px 0;">Your trust is our success</p>
+                  <p style="margin:2px 0;">📍 Bhiria Road Sindh, Pakistan</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- See Receipts Panel -->
+        <div id="receiptsPanel" class="panel-section">
+          <div class="panel-title">All Receipts Archive (Manual & Online)</div>
+          <div style="background: var(--bg-light); padding: 15px; border-radius: 6px; border: 1px solid var(--sapphire); margin-bottom: 15px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: flex-end;">
+              <div>
+                <label>Select Period Filter:</label>
+                <select id="receiptsPeriodFilter" onchange="toggleReceiptsCustomDate()">
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="custom">Custom Date Range</option>
+                </select>
+              </div>
+              <div id="receiptsCustomDateRange" style="display: none;">
+                <label>From Date:</label>
+                <input type="date" id="receiptsStartDate">
+                <label>To Date:</label>
+                <input type="date" id="receiptsEndDate">
+              </div>
+              <div>
+                <label>Search (Invoice #, Name, Mobile):</label>
+                <input type="text" id="receiptsSearchInput" placeholder="Enter Invoice, Name, or Phone...">
+              </div>
+              <div>
+                <button class="btn" style="height: 38px;" onclick="renderAllReceiptsTable()">🔍 Search Receipts</button>
+              </div>
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Invoice / Order #</th>
+                <th>Date & Time</th>
+                <th>Customer Name</th>
+                <th>Mobile Phone</th>
+                <th>Total (Rs.)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allReceiptsTableBody">
+              <tr><td colspan="6" class="text-center">No receipts found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Online Orders Panel -->
+        <div id="onlinePanel" class="panel-section">
+          <div class="panel-title">Online Orders Management</div>
+          
+          <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-sm" id="btnOnlineTabPending" onclick="switchOnlineTab('pending')">📥 Pending Incoming Orders</button>
+            <button class="btn btn-sm btn-secondary" id="btnOnlineTabCompleted" onclick="switchOnlineTab('completed')">✅ Completed Orders Archive</button>
+            <button class="btn btn-sm btn-secondary" onclick="fetchOnlineOrders(true)">🔄 Refresh</button>
+            <div style="flex: 1; min-width: 220px; max-width: 350px; margin-left: auto;">
+              <input type="text" id="onlineSearchInput" placeholder="Search orders by Name, Mobile, Order #" oninput="filterOnlineOrders()" style="margin: 0; padding: 6px 10px;">
+            </div>
+          </div>
+
+          <!-- Pending Orders Sub-View -->
+          <div id="onlinePendingSubPanel">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order#</th>
+                  <th>Time</th>
+                  <th>Customer</th>
+                  <th>Phone / Address</th>
+                  <th>Items Ordered</th>
+                  <th>Total (Rs.)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="onlineOrdersTableBody">
+                <tr><td colspan="7" class="text-center">No pending online orders at this moment. Click Refresh.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Completed Orders Sub-View -->
+          <div id="onlineCompletedSubPanel" style="display: none;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order#</th>
+                  <th>Completed Date & Time</th>
+                  <th>Customer Name</th>
+                  <th>Mobile Phone</th>
+                  <th>Items</th>
+                  <th>Total (Rs.)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="completedOrdersTableBody">
+                <tr><td colspan="7" class="text-center">No completed orders found.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Menu Manager Panel -->
+        <div id="menuPanel" class="panel-section admin-only">
+          <div class="panel-title">Permanent Menu Manager</div>
+          <div style="max-width: 500px;">
+            <input type="hidden" id="editMenuIndex" value="-1">
+            <label>Item Name:</label>
+            <input type="text" id="newMenuName" placeholder="e.g. Zinger Burger">
+            <label>Item Price (Rs.):</label>
+            <input type="number" id="newMenuPrice" placeholder="e.g. 300">
+            <label>Image URL:</label>
+            <input type="text" id="newMenuImg" placeholder="https://example.com/image.jpg">
+            <button class="btn btn-success" onclick="saveMenuItem()">Save Item to Menu</button>
+            <button class="btn btn-secondary" id="cancelMenuEdit" style="display:none;" onclick="resetMenuForm()">Cancel Edit</button>
+          </div>
+          <h4 style="margin-top: 25px;">Current Menu Items</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Item Name</th>
+                <th>Price (Rs.)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="menuTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Deals & Offers Manager Panel -->
+        <div id="dealsPanel" class="panel-section admin-only">
+          <div class="panel-title">Manage Special Deals & Offers (Synced to Customers)</div>
+          <div style="max-width: 500px;">
+            <input type="hidden" id="editDealIndex" value="-1">
+            <label>Deal Title:</label>
+            <input type="text" id="dealTitle" placeholder="e.g. Family Super Deal">
+            <label>Deal Description:</label>
+            <textarea id="dealDesc" placeholder="2 Zingers + 1 Large Fries + 1.5L Drink" rows="2"></textarea>
+            <label>Deal Price (Rs.):</label>
+            <input type="number" id="dealPrice" placeholder="e.g. 750">
+            <label>Valid Until (Expiry Date):</label>
+            <input type="date" id="dealValidUntil">
+            <label>Deal Image URL:</label>
+            <input type="text" id="dealImg" placeholder="https://example.com/deal.jpg">
+            <button class="btn btn-success" onclick="saveDealItem()">Publish / Update Deal</button>
+            <button class="btn btn-secondary" id="cancelDealEdit" style="display:none;" onclick="resetDealForm()">Cancel Edit</button>
+          </div>
+          <h4 style="margin-top: 25px;">Active Deals & Offers</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Title & Description</th>
+                <th>Price</th>
+                <th>Valid Until</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dealsTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Sales Analytics Panel -->
+        <div id="salesPanel" class="panel-section admin-only">
+          <div class="panel-title">Sales & Financial Analytics</div>
+          <div style="max-width: 500px;">
+            <label>Select View Period:</label>
+            <select id="timeFilter" onchange="toggleCustomDate()">
+              <option value="today">Today</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+            <div id="customDateRange" style="display: none;">
+              <label>From Date:</label>
+              <input type="date" id="startDate">
+              <label>To Date:</label>
+              <input type="date" id="endDate">
+            </div>
+            <label>Filter By Specific Item:</label>
+            <select id="analyticsItemSelect">
+              <option value="all">-- All Items Combined --</option>
+            </select>
+            <button class="btn" onclick="updateAnalytics()">Calculate Total Earnings</button>
+            
+            <label style="margin-top: 15px;">Download Sales Report Format:</label>
+            <select id="salesDownloadFormat">
+              <option value="excel">Excel (.xlsx)</option>
+              <option value="pdf">PDF (.pdf)</option>
+              <option value="word">Word (.doc)</option>
+            </select>
+            <button class="btn btn-success" style="margin-top: 5px;" onclick="downloadSalesSelectedFormat()">📥 Download Sales Report</button>
+          </div>
+          <div class="analytics-box" style="max-width: 500px;">
+            <div class="stat-row">
+              <span id="statCountLabel">Total Receipts (Orders):</span>
+              <strong id="statCount">0</strong>
+            </div>
+            <div class="stat-row" id="statQtyRow" style="display:none;">
+              <span>Total Units Sold:</span>
+              <strong id="statQty">0</strong>
+            </div>
+            <div class="stat-row">
+              <span>Total Revenue:</span>
+              <strong>Rs. <span id="statEarnings">0.00</span></strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Panel -->
+        <div id="inventoryPanel" class="panel-section admin-only">
+          <div class="panel-title">Manual Inventory & Purchase Manager</div>
+          <div style="max-width: 500px;">
+            <label>Item / Ingredient Name:</label>
+            <input type="text" id="invItemName" placeholder="e.g. Chicken Buns">
+            <label>Stock Quantity:</label>
+            <input type="number" id="invQty" placeholder="e.g. 100">
+            <label>Unit Cost (Rs.):</label>
+            <input type="number" id="invCost" placeholder="e.g. 25">
+            <button class="btn btn-success" onclick="saveInventoryItem()">Save Stock Item</button>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+            <label>Select Period for Download:</label>
+            <select id="inventoryPeriodFilter" onchange="toggleInventoryCustomDate()">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+            <div id="inventoryCustomDateRange" style="display: none;">
+              <label>From Date:</label>
+              <input type="date" id="inventoryStartDate">
+              <label>To Date:</label>
+              <input type="date" id="inventoryEndDate">
+            </div>
+
+            <label style="margin-top: 15px;">Download Purchase Details Format:</label>
+            <select id="inventoryDownloadFormat">
+              <option value="excel">Excel (.xlsx)</option>
+              <option value="pdf">PDF (.pdf)</option>
+              <option value="word">Word (.doc)</option>
+            </select>
+            <button class="btn btn-success" style="margin-top: 5px;" onclick="downloadInventorySelectedFormat()">📥 Download Purchase Details</button>
+          </div>
+          <table class="data-table" style="margin-top:20px;">
+            <thead>
+              <tr><th>Item Name</th><th>Stock Qty</th><th>Unit Cost</th><th>Total Value</th><th>Action</th></tr>
+            </thead>
+            <tbody id="inventoryTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- User Management Panel -->
+        <div id="usersPanel" class="panel-section admin-only">
+          <div class="panel-title">User Account Management</div>
+          <div style="max-width: 500px;">
+            <label>New Username:</label>
+            <input type="text" id="newUsername" placeholder="e.g. cashier1">
+            <label>New Password:</label>
+            <input type="password" id="newUserPass" placeholder="Enter User Password">
+            <label>Role:</label>
+            <select id="newUserRole">
+              <option value="Cashier">Cashier</option>
+              <option value="Admin">Admin</option>
+            </select>
+            <button class="btn btn-success" onclick="createNewUserAccount()">Create User Account</button>
+          </div>
+          <table class="data-table" style="margin-top: 20px;">
+            <thead>
+              <tr><th>Username</th><th>Role</th><th>Last Password Update</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Backup & Restore Panel -->
+        <div id="backupPanel" class="panel-section admin-only">
+          <div class="panel-title">Backup & Restore System Data</div>
+          <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+            <button class="btn btn-excel" onclick="exportDataExcel()">📊 Export to Excel</button>
+            <button class="btn btn-pdf" onclick="exportDataPDF()">📄 Export to PDF</button>
+            <button class="btn btn-word" onclick="exportToWord()">📝 Export to Word (.doc)</button>
+            <button class="btn btn-secondary" onclick="exportJSONBackup()">💾 Download JSON Backup</button>
+          </div>
+          <label style="margin-top:20px;">Restore from JSON Backup:</label>
+          <input type="file" id="restoreFile" accept=".json" style="padding:6px;">
+          <button class="btn btn-danger" onclick="restoreJSONBackup()">Restore Database</button>
+
+          <hr style="margin: 30px 0; border: 0; border-top: 2px dashed var(--danger);">
+          <h4 style="color: var(--danger);">Danger Zone</h4>
+          <button class="btn btn-danger" onclick="triggerWebsiteReset()">⚠️ Factory Reset Website</button>
+        </div>
+
+        <!-- Account & Settings Panel -->
+        <div id="settingsPanel" class="panel-section">
+          <div class="panel-title">Account & Preferences</div>
+          <div style="max-width: 400px;">
+            <h4>Change Current User Password</h4>
+            <label>Current Password:</label>
+            <input type="password" id="currentPassInput">
+            <label>New Password:</label>
+            <input type="password" id="newPassInput" placeholder="Enter New Password">
+            <button class="btn btn-success" onclick="changeMyPassword()">Update Password</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+<script>
+  const BIN_ID = '6aca165fffd5d160535eb6ec';
+  const API_KEY = '$2a$10$bLSrQ4H2Ir7dRVTTM09/9.5bkQRKoXbT47QspaCrchBOm9vk.ceTu';
+  const MASTER_KEY = 'NaveedCafe2026!';
+  const defaultFoodImg = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150';
+
+  let currentUser = null;
+  
+  // Initialize default ADMIN user with password '123456' and isFirstTime flag
+  let users = JSON.parse(localStorage.getItem('cafeUsers'));
+  if (!users || users.length === 0) {
+    users = [{ username: 'ADMIN', pass: '123456', role: 'Admin', isFirstTime: true, lastUpdated: new Date().toISOString() }];
+    localStorage.setItem('cafeUsers', JSON.stringify(users));
+  }
+
+  let menu = JSON.parse(localStorage.getItem('cafeMenu')) || [
+    { id: 1, name: "Zinger Burger", price: 300, image: defaultFoodImg },
+    { id: 2, name: "Chicken Burger", price: 250, image: defaultFoodImg },
+    { id: 3, name: "Club Sandwich", price: 320, image: defaultFoodImg },
+    { id: 4, name: "Fries Large", price: 150, image: defaultFoodImg },
+    { id: 5, name: "Cold Drink 1.5L", price: 180, image: defaultFoodImg }
+  ];
+  let deals = JSON.parse(localStorage.getItem('cafeDeals')) || [];
+  let inventory = JSON.parse(localStorage.getItem('cafeInventory')) || [];
+  let sales = JSON.parse(localStorage.getItem('cafeSales')) || [];
+  let completedOnlineOrders = JSON.parse(localStorage.getItem('cafeCompletedOrders')) || [];
+  let pendingOnlineOrders = [];
+  let contactPhone = '03000878384';
+  let currentBill = [];
+  let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
+
+  function initSystem() {
+    document.getElementById('loginCard').style.display = 'block';
+    document.getElementById('firstTimeCard').style.display = 'none';
+    document.getElementById('forgotCard').style.display = 'none';
+    document.getElementById('receiptContactPhone').innerText = contactPhone;
+  }
+
+  function showLoginCard() {
+    document.getElementById('firstTimeCard').style.display = 'none';
+    document.getElementById('forgotCard').style.display = 'none';
+    document.getElementById('loginCard').style.display = 'block';
+  }
+
+  function showForgotModal() {
+    document.getElementById('loginCard').style.display = 'none';
+    const select = document.getElementById('forgotUserSelect');
+    select.innerHTML = users.map(us => `<option value="${us.username}">${us.username} (${us.role})</option>`).join('');
+    document.getElementById('forgotCard').style.display = 'block';
+  }
+
+  function processLogin() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    const alertBox = document.getElementById('loginAlert');
+
+    const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
+    if (!found) { 
+      alertBox.innerText = "Invalid username or password. Default Username is ADMIN and Password is 123456."; 
+      alertBox.style.display = 'block'; 
+      return; 
+    }
+
+    // Check if logging in for the first time with default password
+    if (found.isFirstTime) {
+      currentUser = found;
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('firstTimeCard').style.display = 'block';
+      return;
+    }
+
+    currentUser = found;
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('appContainer').classList.add('active');
+    document.getElementById('userRoleBadge').innerText = `User: ${currentUser.username} (${currentUser.role})`;
+
+    if (currentUser.role !== 'Admin') {
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden-role'));
+    } else {
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden-role'));
+    }
+
+    postLoginSetup();
+  }
+
+  function saveNewAdminPassword() {
+    const newP = document.getElementById('setupNewPass').value;
+    const confirmP = document.getElementById('setupConfirmPass').value;
+    const alertBox = document.getElementById('firstTimeAlert');
+
+    if (!newP || newP.length < 4) {
+      alertBox.innerText = "Please enter a password with at least 4 characters.";
+      alertBox.style.display = 'block';
+      return;
+    }
+
+    if (newP !== confirmP) {
+      alertBox.innerText = "Passwords do not match.";
+      alertBox.style.display = 'block';
+      return;
+    }
+
+    currentUser.pass = newP;
+    delete currentUser.isFirstTime;
+    currentUser.lastUpdated = new Date().toISOString();
+
+    localStorage.setItem('cafeUsers', JSON.stringify(users));
+    alert("New password created successfully! Entering system...");
+
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('appContainer').classList.add('active');
+    document.getElementById('userRoleBadge').innerText = `User: ${currentUser.username} (${currentUser.role})`;
+
+    postLoginSetup();
+  }
+
+  function processMasterReset() {
+    const uname = document.getElementById('forgotUserSelect').value;
+    const mKey = document.getElementById('forgotMasterKey').value;
+    const newPass = document.getElementById('forgotNewPass').value;
+    const alertBox = document.getElementById('forgotAlert');
+
+    if (mKey !== MASTER_KEY) { 
+      alertBox.innerText = "Invalid Master Security Key."; 
+      alertBox.style.display = 'block'; 
+      return; 
+    }
+    if (!newPass || newPass.length < 4) { 
+      alertBox.innerText = "Password must be at least 4 characters long."; 
+      alertBox.style.display = 'block'; 
+      return; 
+    }
+
+    let userObj = users.find(us => us.username === uname);
+    if (userObj) {
+      userObj.pass = newPass;
+      delete userObj.isFirstTime;
+      userObj.lastUpdated = new Date().toISOString();
+      localStorage.setItem('cafeUsers', JSON.stringify(users));
+      alert("Password successfully reset! You can now log in with your new password.");
+      showLoginCard();
+    }
+  }
+
+  function changeMyPassword() {
+    const cur = document.getElementById('currentPassInput').value;
+    const nxt = document.getElementById('newPassInput').value;
+    if (cur !== currentUser.pass) return alert("Current password is incorrect.");
+    if (!nxt || nxt.length < 4) return alert("New password must be at least 4 characters.");
+    currentUser.pass = nxt;
+    delete currentUser.isFirstTime;
+    currentUser.lastUpdated = new Date().toISOString();
+    localStorage.setItem('cafeUsers', JSON.stringify(users));
+    alert("Password updated successfully!");
+    document.getElementById('currentPassInput').value = '';
+    document.getElementById('newPassInput').value = '';
+    document.getElementById('expiryWarning').style.display = 'none';
+  }
+
+  function logout() {
+    currentUser = null;
+    document.getElementById('appContainer').classList.remove('active');
+    document.getElementById('authContainer').classList.add('active');
+    showLoginCard();
+  }
+
+  function postLoginSetup() {
+    renderMenuDropdown();
+    renderMenuTable();
+    renderDealsTable();
+    renderInventoryTable();
+    renderUsersTable();
+    populateAnalyticsDropdown();
+    fetchOnlineOrders(false);
+    renderAllReceiptsTable();
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
+    document.getElementById('invoiceNo').innerText = String(invoiceCounter).padStart(6, '0');
+    
+    // Auto Refresh Pending Orders Every 7 Seconds
+    setInterval(() => fetchOnlineOrders(false), 7000);
+  }
+
+  function switchPanel(panelId, elem) {
+    document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    elem.classList.add('active');
+    if (panelId === 'receiptsPanel') renderAllReceiptsTable();
+  }
+
+  function renderMenuDropdown() {
+    const sel = document.getElementById('menuSelect');
+    if (!sel) return;
+    sel.innerHTML = menu.map(m => `<option value="${m.name}">${m.name} - Rs. ${m.price}</option>`).join('');
+  }
+
+  function addSelectedMenuItem() {
+    const name = document.getElementById('menuSelect').value;
+    const qty = parseInt(document.getElementById('itemQty').value) || 1;
+    const itemObj = menu.find(m => m.name === name);
+    if (!itemObj) return;
+
+    const existing = currentBill.find(i => i.name === name);
+    if (existing) {
+      existing.qty += qty;
+      existing.total = existing.qty * itemObj.price;
+    } else {
+      currentBill.push({ name: name, price: itemObj.price, qty: qty, total: qty * itemObj.price });
+    }
+    renderBillList();
+  }
+
+  function renderBillList() {
+    const tbody = document.getElementById('itemList');
+    let sub = 0;
+    tbody.innerHTML = currentBill.map((item, idx) => {
+      sub += item.total;
+      return `
+        <tr>
+          <td>${item.qty}</td>
+          <td>${item.name}</td>
+          <td class="text-right">${item.price}</td>
+          <td class="text-right">${item.total}</td>
+          <td class="no-print"><button class="btn btn-danger btn-sm" onclick="removeBillItem(${idx})">×</button></td>
+        </tr>
+      `;
+    }).join('');
+    document.getElementById('subTotal').innerText = sub.toFixed(2);
+    document.getElementById('netAmount').innerText = sub.toFixed(2);
+  }
+
+  function removeBillItem(idx) {
+    currentBill.splice(idx, 1);
+    renderBillList();
+  }
+
+  function resetCurrentBill() {
+    currentBill = [];
+    renderBillList();
+    document.getElementById('customerInput').value = 'Cash';
+    document.getElementById('customerPhoneInput').value = '';
+  }
+
+  function processAndPrint() {
+    if (currentBill.length === 0) return alert("Current order bill is empty!");
+    const currentInvNum = String(invoiceCounter).padStart(6, '0');
+    const net = currentBill.reduce((sum, i) => sum + i.total, 0);
+    
+    sales.push({
+      invoiceNo: currentInvNum,
+      date: new Date().toISOString(),
+      customer: document.getElementById('customerInput').value || 'Cash',
+      phone: document.getElementById('customerPhoneInput').value || 'N/A',
+      items: [...currentBill],
+      total: net,
+      type: 'manual'
+    });
+    localStorage.setItem('cafeSales', JSON.stringify(sales));
+    
+    invoiceCounter++;
+    localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
+    document.getElementById('invoiceNo').innerText = String(invoiceCounter).padStart(6, '0');
+
+    window.print();
+    resetCurrentBill();
+  }
+
+  async function fetchOnlineOrders(userAlert = false) {
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+      let data = await res.json();
+      if (data.record) {
+        pendingOnlineOrders = data.record.orders || [];
+        if (data.record.completedOrders) {
+          completedOnlineOrders = data.record.completedOrders;
+          localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
+        }
+      }
+      
+      document.getElementById('onlineBadge').innerText = pendingOnlineOrders.length;
+      document.getElementById('onlineBadge').style.display = pendingOnlineOrders.length > 0 ? 'inline-block' : 'none';
+
+      renderPendingOnlineOrdersTable(pendingOnlineOrders);
+      if (userAlert) alert("✅ Synchronized online orders!");
+    } catch (e) {
+      if (userAlert) alert("Cloud connection error.");
+    }
+  }
+
+  function renderPendingOnlineOrdersTable(ordersList) {
+    const tbody = document.getElementById('onlineOrdersTableBody');
+    if (!tbody) return;
+    if (ordersList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No pending orders found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = ordersList.slice().reverse().map(o => `
+      <tr>
+        <td>#${String(o.orderId).padStart(6, '0')}</td>
+        <td>${o.timestamp}</td>
+        <td>${o.customerName}</td>
+        <td>${o.phone}<br><small>${o.address || ''}</small></td>
+        <td>${o.items.map(i => `${i.qty}x${i.name}`).join(', ')}</td>
+        <td><b>Rs. ${o.totalAmount}</b></td>
+        <td><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete Order</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function markOrderCompleted(orderId) {
+    const idx = pendingOnlineOrders.findIndex(o => String(o.orderId) === String(orderId));
+    if (idx === -1) return;
+    
+    const completedOrder = pendingOnlineOrders.splice(idx, 1)[0];
+    const assignedInvoiceNo = String(invoiceCounter).padStart(6, '0');
+    
+    completedOrder.orderId = assignedInvoiceNo;
+    completedOrder.completedAt = new Date().toISOString();
+    completedOrder.acknowledged = true;
+    completedOrder.status = 'Order is Ready! ✅';
+
+    invoiceCounter++;
+    localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
+    document.getElementById('invoiceNo').innerText = String(invoiceCounter).padStart(6, '0');
+
+    sales.push({
+      invoiceNo: assignedInvoiceNo,
+      date: completedOrder.completedAt,
+      customer: completedOrder.customerName || 'Online Customer',
+      phone: completedOrder.phone || 'N/A',
+      items: completedOrder.items,
+      total: completedOrder.totalAmount,
+      type: 'online'
+    });
+    localStorage.setItem('cafeSales', JSON.stringify(sales));
+
+    completedOnlineOrders.push(completedOrder);
+    localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
+
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+      let data = await res.json();
+      let record = data.record || {};
+      
+      record.orders = pendingOnlineOrders;
+      record.completedOrders = completedOnlineOrders;
+
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+        body: JSON.stringify(record)
+      });
+    } catch (e) {
+      console.error("Cloud sync error", e);
+    }
+
+    fetchOnlineOrders(false);
+    alert(`Order accepted & assigned Invoice #${assignedInvoiceNo}!`);
+  }
+
+  async function syncAllToCloud() {
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+      let data = await res.json();
+      let record = data.record || {};
+
+      record.menu = menu;
+      record.deals = deals;
+      record.contactPhone = contactPhone;
+      record.orders = pendingOnlineOrders;
+      record.completedOrders = completedOnlineOrders;
+
+      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+        body: JSON.stringify(record)
+      });
+      alert("✅ Synced Menu & Deals to Customer Site!");
+    } catch (e) {
+      alert("Cloud sync failed.");
+    }
+  }
+
+  function triggerWebsiteReset() {
+    const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password to wipe system:");
+    if (!enteredPass || enteredPass !== currentUser.pass) return alert("Incorrect password.");
+    if (confirm("Reset everything?")) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+
+  function renderMenuTable() {
+    const tbody = document.getElementById('menuTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = menu.map((m, idx) => `
+      <tr>
+        <td><img src="${m.image || defaultFoodImg}" class="table-thumb" alt="${m.name}"></td>
+        <td>${m.name}</td>
+        <td>Rs. ${m.price}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editMenuItem(${idx})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMenuItem(${idx})">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function saveMenuItem() {
+    const name = document.getElementById('newMenuName').value.trim();
+    const price = parseFloat(document.getElementById('newMenuPrice').value);
+    const img = document.getElementById('newMenuImg').value.trim();
+    const editIdx = parseInt(document.getElementById('editMenuIndex').value);
+
+    if (!name || isNaN(price)) return alert("Please enter valid name and price.");
+
+    if (editIdx >= 0) {
+      menu[editIdx] = { id: menu[editIdx].id, name, price, image: img || defaultFoodImg };
+    } else {
+      menu.push({ id: Date.now(), name, price, image: img || defaultFoodImg });
+    }
+
+    localStorage.setItem('cafeMenu', JSON.stringify(menu));
+    resetMenuForm();
+    renderMenuTable();
+    renderMenuDropdown();
+    populateAnalyticsDropdown();
+    alert("Menu item saved!");
+  }
+
+  function editMenuItem(idx) {
+    const m = menu[idx];
+    document.getElementById('newMenuName').value = m.name;
+    document.getElementById('newMenuPrice').value = m.price;
+    document.getElementById('newMenuImg').value = m.image || '';
+    document.getElementById('editMenuIndex').value = idx;
+    document.getElementById('cancelMenuEdit').style.display = 'inline-block';
+  }
+
+  function deleteMenuItem(idx) {
+    if (confirm("Delete this menu item?")) {
+      menu.splice(idx, 1);
+      localStorage.setItem('cafeMenu', JSON.stringify(menu));
+      renderMenuTable();
+      renderMenuDropdown();
+      populateAnalyticsDropdown();
+    }
+  }
+
+  function resetMenuForm() {
+    document.getElementById('newMenuName').value = '';
+    document.getElementById('newMenuPrice').value = '';
+    document.getElementById('newMenuImg').value = '';
+    document.getElementById('editMenuIndex').value = '-1';
+    document.getElementById('cancelMenuEdit').style.display = 'none';
+  }
+
+  function renderDealsTable() {
+    const tbody = document.getElementById('dealsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = deals.map((d, idx) => `
+      <tr>
+        <td><img src="${d.image || defaultFoodImg}" class="table-thumb" alt="${d.title}"></td>
+        <td><b>${d.title}</b><br><small>${d.description || ''}</small></td>
+        <td>Rs. ${d.price}</td>
+        <td>${d.validUntil || 'Always'}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editDealItem(${idx})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDealItem(${idx})">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function saveDealItem() {
+    const title = document.getElementById('dealTitle').value.trim();
+    const desc = document.getElementById('dealDesc').value.trim();
+    const price = parseFloat(document.getElementById('dealPrice').value);
+    const validUntil = document.getElementById('dealValidUntil').value;
+    const img = document.getElementById('dealImg').value.trim();
+    const editIdx = parseInt(document.getElementById('editDealIndex').value);
+
+    if (!title || isNaN(price)) return alert("Please enter deal title and price.");
+
+    const dealObj = { id: editIdx >= 0 ? deals[editIdx].id : Date.now(), title, description: desc, price, validUntil, image: img || defaultFoodImg };
+
+    if (editIdx >= 0) {
+      deals[editIdx] = dealObj;
+    } else {
+      deals.push(dealObj);
+    }
+
+    localStorage.setItem('cafeDeals', JSON.stringify(deals));
+    resetDealForm();
+    renderDealsTable();
+    alert("Deal saved successfully!");
+  }
+
+  function editDealItem(idx) {
+    const d = deals[idx];
+    document.getElementById('dealTitle').value = d.title;
+    document.getElementById('dealDesc').value = d.description || '';
+    document.getElementById('dealPrice').value = d.price;
+    document.getElementById('dealValidUntil').value = d.validUntil || '';
+    document.getElementById('dealImg').value = d.image || '';
+    document.getElementById('editDealIndex').value = idx;
+    document.getElementById('cancelDealEdit').style.display = 'inline-block';
+  }
+
+  function deleteDealItem(idx) {
+    if (confirm("Delete this deal?")) {
+      deals.splice(idx, 1);
+      localStorage.setItem('cafeDeals', JSON.stringify(deals));
+      renderDealsTable();
+    }
+  }
+
+  function resetDealForm() {
+    document.getElementById('dealTitle').value = '';
+    document.getElementById('dealDesc').value = '';
+    document.getElementById('dealPrice').value = '';
+    document.getElementById('dealValidUntil').value = '';
+    document.getElementById('dealImg').value = '';
+    document.getElementById('editDealIndex').value = '-1';
+    document.getElementById('cancelDealEdit').style.display = 'none';
+  }
+
+  function renderInventoryTable() {
+    const tbody = document.getElementById('inventoryTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = inventory.map((i, idx) => `
+      <tr>
+        <td>${i.name}</td>
+        <td>${i.qty}</td>
+        <td>Rs. ${i.cost}</td>
+        <td>Rs. ${i.qty * i.cost}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteInventory(${idx})">Delete</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function saveInventoryItem() {
+    const name = document.getElementById('invItemName').value.trim();
+    const qty = parseInt(document.getElementById('invQty').value);
+    const cost = parseFloat(document.getElementById('invCost').value);
+    if (!name || isNaN(qty) || isNaN(cost)) return alert("Enter valid inventory data.");
+    inventory.push({ name, qty, cost, date: new Date().toISOString() });
+    localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+    document.getElementById('invItemName').value = '';
+    document.getElementById('invQty').value = '';
+    document.getElementById('invCost').value = '';
+    renderInventoryTable();
+  }
+
+  function deleteInventory(idx) {
+    inventory.splice(idx, 1);
+    localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+    renderInventoryTable();
+  }
+
+  function renderUsersTable() {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = users.map((u, idx) => `
+      <tr>
+        <td>${u.username}</td>
+        <td>${u.role}</td>
+        <td>${u.lastUpdated ? new Date(u.lastUpdated).toLocaleDateString() : 'N/A'}</td>
+        <td>${u.username !== 'ADMIN' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${idx})">Delete</button>` : 'System Admin'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function createNewUserAccount() {
+    const u = document.getElementById('newUsername').value.trim();
+    const p = document.getElementById('newUserPass').value;
+    const r = document.getElementById('newUserRole').value;
+    if (!u || !p) return alert("Enter username and password.");
+    users.push({ username: u, pass: p, role: r, lastUpdated: new Date().toISOString() });
+    localStorage.setItem('cafeUsers', JSON.stringify(users));
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newUserPass').value = '';
+    renderUsersTable();
+    alert("User account created successfully!");
+  }
+
+  function deleteUser(idx) {
+    users.splice(idx, 1);
+    localStorage.setItem('cafeUsers', JSON.stringify(users));
+    renderUsersTable();
+  }
+
+  function toggleCustomDate() {
+    const val = document.getElementById('timeFilter').value;
+    document.getElementById('customDateRange').style.display = val === 'custom' ? 'block' : 'none';
+  }
+
+  function populateAnalyticsDropdown() {
+    const sel = document.getElementById('analyticsItemSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="all">-- All Items Combined --</option>' + menu.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  }
+
+  function renderAllReceiptsTable() {
+    const tbody = document.getElementById('allReceiptsTableBody');
+    if (!tbody) return;
+    let all = [...sales];
+    if (all.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">No receipts found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = all.slice().reverse().map(r => `
+      <tr>
+        <td>#${r.invoiceNo}</td>
+        <td>${new Date(r.date).toLocaleString()}</td>
+        <td>${r.customer}</td>
+        <td>${r.phone}</td>
+        <td><b>Rs. ${r.total}</b></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="reprintReceipt('${r.invoiceNo}')">🖨️ Print</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function reprintReceipt(invNo) {
+    const found = sales.find(s => String(s.invoiceNo) === String(invNo));
+    if (!found) return;
+    document.getElementById('invoiceNo').innerText = found.invoiceNo;
+    document.getElementById('receiptCustomerName').innerText = found.customer;
+    document.getElementById('receiptCustomerPhoneDisplay').innerText = found.phone;
+    currentBill = found.items;
+    renderBillList();
+    window.print();
+  }
+
+  window.onload = initSystem;
+</script>
+</body>
+</html>
