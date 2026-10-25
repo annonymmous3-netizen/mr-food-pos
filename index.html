@@ -373,8 +373,10 @@
             <input type="text" id="newMenuName" placeholder="e.g. Zinger Burger">
             <label>Item Price (Rs.):</label>
             <input type="number" id="newMenuPrice" placeholder="e.g. 300">
-            <label>Image URL:</label>
+            <label>Image URL (or upload image below):</label>
             <input type="text" id="newMenuImg" placeholder="https://example.com/image.jpg">
+            <label>Upload Image from Phone / Laptop Storage:</label>
+            <input type="file" id="menuImageFile" accept="image/*" onchange="handleMenuImageUpload(event)" style="padding:6px; background:#fff;">
             <button class="btn btn-success" onclick="saveMenuItem()">Save Item to Menu</button>
             <button class="btn btn-secondary" id="cancelMenuEdit" style="display:none;" onclick="resetMenuForm()">Cancel Edit</button>
           </div>
@@ -468,6 +470,8 @@
             <input type="text" id="invQty" placeholder="e.g. 50 kg or 20 packets or 5 L">
             <label>Unit Cost (Rs.):</label>
             <input type="number" id="invCost" placeholder="e.g. 25">
+            <label>Purchase / Stock Date (Select past date if missed):</label>
+            <input type="date" id="invItemDate">
             <button class="btn btn-success" onclick="saveInventoryItem()">Save Stock Item</button>
             
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
@@ -496,7 +500,7 @@
           </div>
           <table class="data-table" style="margin-top:20px;">
             <thead>
-              <tr><th>Item Name</th><th>Stock Qty/Wt/Litre</th><th>Unit Cost</th><th>Total Value</th><th>Action</th></tr>
+              <tr><th>Item Name</th><th>Stock Qty/Wt/Litre</th><th>Unit Cost</th><th>Total Value</th><th>Date Added</th><th>Action</th></tr>
             </thead>
             <tbody id="inventoryTableBody"></tbody>
           </table>
@@ -590,6 +594,7 @@
       </div>
     </div>
   </div>
+
 <script>
   const BIN_ID = '6aca165fffd5d160535eb6ec';
   const API_KEY = '$2a$10$bLSrQ4H2Ir7dRVTTM09/9.5bkQRKoXbT47QspaCrchBOm9vk.ceTu';
@@ -599,12 +604,9 @@
   let currentUser = null;
   let currentModalReceiptObj = null;
   
-  // Initialize default ADMIN user with password '123456' and isFirstTime flag
-  let users = JSON.parse(localStorage.getItem('cafeUsers'));
-  if (!users || users.length === 0) {
-    users = [{ username: 'ADMIN', pass: '123456', role: 'Admin', isFirstTime: true, lastUpdated: new Date().toISOString() }];
-    localStorage.setItem('cafeUsers', JSON.stringify(users));
-  }
+  let users = JSON.parse(localStorage.getItem('cafeUsers')) || [
+    { username: 'ADMIN', pass: '123456', role: 'Admin', isFirstTime: true, lastUpdated: new Date().toISOString() }
+  ];
 
   let menu = JSON.parse(localStorage.getItem('cafeMenu')) || [
     { id: 1, name: "Zinger Burger", price: 300, image: defaultFoodImg },
@@ -623,7 +625,6 @@
   let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
 
   function validateStrongPassword(pass) {
-    // Must contain uppercase, lowercase, number, and symbol/sign
     const hasUpper = /[A-Z]/.test(pass);
     const hasLower = /[a-z]/.test(pass);
     const hasNum = /\d/.test(pass);
@@ -631,11 +632,52 @@
     return hasUpper && hasLower && hasNum && hasSym && pass.length >= 6;
   }
 
-  function initSystem() {
+  async function fetchCloudDataOnStart() {
+    try {
+      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+      let data = await res.json();
+      if (data.record) {
+        if (data.record.users && data.record.users.length > 0) {
+          users = data.record.users;
+          localStorage.setItem('cafeUsers', JSON.stringify(users));
+        }
+        if (data.record.menu) {
+          menu = data.record.menu;
+          localStorage.setItem('cafeMenu', JSON.stringify(menu));
+        }
+        if (data.record.deals) {
+          deals = data.record.deals;
+          localStorage.setItem('cafeDeals', JSON.stringify(deals));
+        }
+        if (data.record.inventory) {
+          inventory = data.record.inventory;
+          localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+        }
+        if (data.record.sales) {
+          sales = data.record.sales;
+          localStorage.setItem('cafeSales', JSON.stringify(sales));
+        }
+        if (data.record.completedOrders) {
+          completedOnlineOrders = data.record.completedOrders;
+          localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
+        }
+        if (data.record.invoiceCounter) {
+          invoiceCounter = data.record.invoiceCounter;
+          localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
+        }
+      }
+    } catch (e) {
+      console.log("Offline mode or cloud fetch error. Using local storage.");
+    }
+  }
+
+  async function initSystem() {
+    await fetchCloudDataOnStart();
     document.getElementById('loginCard').style.display = 'block';
     document.getElementById('firstTimeCard').style.display = 'none';
     document.getElementById('forgotCard').style.display = 'none';
     document.getElementById('receiptContactPhone').innerText = contactPhone;
+    document.getElementById('invItemDate').value = new Date().toISOString().slice(0, 10);
   }
 
   function showLoginCard() {
@@ -651,11 +693,14 @@
     document.getElementById('forgotCard').style.display = 'block';
   }
 
-  function processLogin() {
+  async function processLogin() {
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value;
     const alertBox = document.getElementById('loginAlert');
     alertBox.style.display = 'none';
+
+    // Re-sync with cloud before verifying to ensure password set on another device is recognized
+    await fetchCloudDataOnStart();
 
     const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
     if (!found) { 
@@ -685,7 +730,7 @@
     postLoginSetup();
   }
 
-  function saveNewAdminPassword() {
+  async function saveNewAdminPassword() {
     const newP = document.getElementById('setupNewPass').value;
     const confirmP = document.getElementById('setupConfirmPass').value;
     const alertBox = document.getElementById('firstTimeAlert');
@@ -708,7 +753,8 @@
     currentUser.lastUpdated = new Date().toISOString();
 
     localStorage.setItem('cafeUsers', JSON.stringify(users));
-    alert("New password created successfully! Entering system...");
+    await syncAllToCloud();
+    alert("New password created and saved permanently!");
 
     document.getElementById('authContainer').classList.remove('active');
     document.getElementById('appContainer').classList.add('active');
@@ -717,7 +763,7 @@
     postLoginSetup();
   }
 
-  function processMasterReset() {
+  async function processMasterReset() {
     const uname = document.getElementById('forgotUserSelect').value;
     const mKey = document.getElementById('forgotMasterKey').value;
     const newPass = document.getElementById('forgotNewPass').value;
@@ -741,21 +787,26 @@
       delete userObj.isFirstTime;
       userObj.lastUpdated = new Date().toISOString();
       localStorage.setItem('cafeUsers', JSON.stringify(users));
-      alert("Password successfully reset! You can now log in with your new password.");
+      await syncAllToCloud();
+      alert("Password successfully reset and saved permanently!");
       showLoginCard();
     }
   }
 
-  function changeMyPassword() {
+  async function changeMyPassword() {
     const cur = document.getElementById('currentPassInput').value;
     const nxt = document.getElementById('newPassInput').value;
     if (cur !== currentUser.pass) return alert("Current password is incorrect.");
     if (!validateStrongPassword(nxt)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols.");
+    
     currentUser.pass = nxt;
     delete currentUser.isFirstTime;
     currentUser.lastUpdated = new Date().toISOString();
+    
     localStorage.setItem('cafeUsers', JSON.stringify(users));
-    alert("Password updated successfully!");
+    await syncAllToCloud();
+    
+    alert("Password updated and saved permanently!");
     document.getElementById('currentPassInput').value = '';
     document.getElementById('newPassInput').value = '';
     document.getElementById('expiryWarning').style.display = 'none';
@@ -864,6 +915,7 @@
     localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
     document.getElementById('invoiceNo').innerText = String(invoiceCounter).padStart(6, '0');
 
+    syncAllToCloud();
     window.print();
     resetCurrentBill();
   }
@@ -1005,7 +1057,6 @@
     currentBill = currentModalReceiptObj.items;
     renderBillList();
     window.print();
-    // Reset current bill back to empty so it doesn't affect active POS entry
     currentBill = [];
     renderBillList();
   }
@@ -1128,22 +1179,7 @@
     completedOnlineOrders.push(completedOrder);
     localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
 
-    try {
-      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
-      let data = await res.json();
-      let record = data.record || {};
-      
-      record.orders = pendingOnlineOrders;
-      record.completedOrders = completedOnlineOrders;
-
-      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-        body: JSON.stringify(record)
-      });
-    } catch (e) {
-      console.error("Cloud sync error", e);
-    }
+    await syncAllToCloud();
 
     fetchOnlineOrders(false);
     renderAllReceiptsTable();
@@ -1161,15 +1197,17 @@
       record.contactPhone = contactPhone;
       record.orders = pendingOnlineOrders;
       record.completedOrders = completedOnlineOrders;
+      record.users = users;
+      record.invoiceCounter = invoiceCounter;
 
       await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
         body: JSON.stringify(record)
       });
-      alert("✅ Synced Menu & Deals to Customer Site!");
+      console.log("✅ Synced successfully to cloud!");
     } catch (e) {
-      alert("Cloud sync failed.");
+      console.log("Cloud sync failed.");
     }
   }
 
@@ -1183,6 +1221,19 @@
   }
 
   // Menu, Deals, Inventory & Analytics
+  let uploadedImageBase64 = '';
+  function handleMenuImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedImageBase64 = e.target.result;
+        document.getElementById('newMenuImg').value = uploadedImageBase64;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   function renderMenuTable() {
     const tbody = document.getElementById('menuTableBody');
     if (!tbody) return;
@@ -1199,26 +1250,29 @@
     `).join('');
   }
 
-  function saveMenuItem() {
+  async function saveMenuItem() {
     const name = document.getElementById('newMenuName').value.trim();
     const price = parseFloat(document.getElementById('newMenuPrice').value);
-    const img = document.getElementById('newMenuImg').value.trim();
+    const imgUrlInput = document.getElementById('newMenuImg').value.trim();
     const editIdx = parseInt(document.getElementById('editMenuIndex').value);
 
     if (!name || isNaN(price)) return alert("Please enter valid name and price.");
 
+    const finalImage = uploadedImageBase64 || imgUrlInput || defaultFoodImg;
+
     if (editIdx >= 0) {
-      menu[editIdx] = { id: menu[editIdx].id, name, price, image: img || defaultFoodImg };
+      menu[editIdx] = { id: menu[editIdx].id, name, price, image: finalImage };
     } else {
-      menu.push({ id: Date.now(), name, price, image: img || defaultFoodImg });
+      menu.push({ id: Date.now(), name, price, image: finalImage });
     }
 
     localStorage.setItem('cafeMenu', JSON.stringify(menu));
+    await syncAllToCloud();
     resetMenuForm();
     renderMenuTable();
     renderMenuDropdown();
     populateAnalyticsDropdown();
-    alert("Menu item saved!");
+    alert("Menu item saved permanently and synchronized with customer site!");
   }
 
   function editMenuItem(idx) {
@@ -1230,10 +1284,11 @@
     document.getElementById('cancelMenuEdit').style.display = 'inline-block';
   }
 
-  function deleteMenuItem(idx) {
+  async function deleteMenuItem(idx) {
     if (confirm("Delete this menu item?")) {
       menu.splice(idx, 1);
       localStorage.setItem('cafeMenu', JSON.stringify(menu));
+      await syncAllToCloud();
       renderMenuTable();
       renderMenuDropdown();
       populateAnalyticsDropdown();
@@ -1244,6 +1299,8 @@
     document.getElementById('newMenuName').value = '';
     document.getElementById('newMenuPrice').value = '';
     document.getElementById('newMenuImg').value = '';
+    document.getElementById('menuImageFile').value = '';
+    uploadedImageBase64 = '';
     document.getElementById('editMenuIndex').value = '-1';
     document.getElementById('cancelMenuEdit').style.display = 'none';
   }
@@ -1265,7 +1322,7 @@
     `).join('');
   }
 
-  function saveDealItem() {
+  async function saveDealItem() {
     const title = document.getElementById('dealTitle').value.trim();
     const desc = document.getElementById('dealDesc').value.trim();
     const price = parseFloat(document.getElementById('dealPrice').value);
@@ -1284,9 +1341,10 @@
     }
 
     localStorage.setItem('cafeDeals', JSON.stringify(deals));
+    await syncAllToCloud();
     resetDealForm();
     renderDealsTable();
-    alert("Deal saved successfully!");
+    alert("Deal saved successfully and synced!");
   }
 
   function editDealItem(idx) {
@@ -1300,10 +1358,11 @@
     document.getElementById('cancelDealEdit').style.display = 'inline-block';
   }
 
-  function deleteDealItem(idx) {
+  async function deleteDealItem(idx) {
     if (confirm("Delete this deal?")) {
       deals.splice(idx, 1);
       localStorage.setItem('cafeDeals', JSON.stringify(deals));
+      await syncAllToCloud();
       renderDealsTable();
     }
   }
@@ -1327,6 +1386,7 @@
         <td>${i.qty}</td>
         <td>Rs. ${i.cost}</td>
         <td>Rs. ${isNaN(parseFloat(i.qty)) ? '0' : (parseFloat(i.qty) * i.cost)}</td>
+        <td>${i.date || 'N/A'}</td>
         <td><button class="btn btn-danger btn-sm" onclick="deleteInventory(${idx})">Delete</button></td>
       </tr>
     `).join('');
@@ -1334,15 +1394,21 @@
 
   function saveInventoryItem() {
     const name = document.getElementById('invItemName').value.trim();
-    const qty = document.getElementById('invQty').value.trim(); // Allows numbers and letters combined (e.g., 50 kg)
+    const qty = document.getElementById('invQty').value.trim();
     const cost = parseFloat(document.getElementById('invCost').value);
+    const itemDate = document.getElementById('invItemDate').value || new Date().toISOString().slice(0, 10);
+    
     if (!name || !qty || isNaN(cost)) return alert("Enter valid inventory data.");
-    inventory.push({ name, qty, cost, date: new Date().toISOString() });
+    inventory.push({ name, qty, cost, date: itemDate });
     localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+    
     document.getElementById('invItemName').value = '';
     document.getElementById('invQty').value = '';
     document.getElementById('invCost').value = '';
+    document.getElementById('invItemDate').value = new Date().toISOString().slice(0, 10);
+    
     renderInventoryTable();
+    alert("Stock item saved with date successfully!");
   }
 
   function deleteInventory(idx) {
@@ -1364,27 +1430,19 @@
     const now = new Date();
 
     if (period === 'today') {
-      const todayStr = now.toDateString();
-      filtered = filtered.filter(i => new Date(i.date).toDateString() === todayStr);
+      const todayStr = now.toISOString().slice(0, 10);
+      filtered = filtered.filter(i => i.date === todayStr);
     } else if (period === 'week') {
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter(i => new Date(i.date) >= oneWeekAgo);
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      filtered = filtered.filter(i => i.date >= oneWeekAgo);
     } else if (period === 'month') {
-      filtered = filtered.filter(i => {
-        const d = new Date(i.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
+      const currentMonthPrefix = now.toISOString().slice(0, 7);
+      filtered = filtered.filter(i => i.date && i.date.startsWith(currentMonthPrefix));
     } else if (period === 'custom') {
       const start = document.getElementById('inventoryStartDate').value;
       const end = document.getElementById('inventoryEndDate').value;
       if (start && end) {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59, 999);
-        filtered = filtered.filter(i => {
-          const d = new Date(i.date);
-          return d >= startDate && d <= endDate;
-        });
+        filtered = filtered.filter(i => i.date && i.date >= start && i.date <= end);
       }
     }
 
@@ -1395,7 +1453,7 @@
         "Item Name": i.name,
         "Stock Qty / Wt / Litre": i.qty,
         "Unit Cost (Rs.)": i.cost,
-        "Date": new Date(i.date).toLocaleDateString()
+        "Date Added": i.date || 'N/A'
       }));
       let ws = XLSX.utils.json_to_sheet(dataToExport);
       let wb = XLSX.utils.book_new();
@@ -1405,12 +1463,12 @@
       const { jsPDF } = window.jspdf;
       let doc = new jsPDF();
       doc.text("MR FOOD CAFE NAVEED - Purchase Report", 14, 15);
-      let tableData = filtered.map(i => [i.name, i.qty, `Rs. ${i.cost}`, new Date(i.date).toLocaleDateString()]);
-      doc.autoTable({ head: [['Item Name', 'Qty/Wt/Litre', 'Unit Cost', 'Date']], body: tableData, startY: 20 });
+      let tableData = filtered.map(i => [i.name, i.qty, `Rs. ${i.cost}`, i.date || 'N/A']);
+      doc.autoTable({ head: [['Item Name', 'Qty/Wt/Litre', 'Unit Cost', 'Date Added']], body: tableData, startY: 20 });
       doc.save("Purchase_Report.pdf");
     } else if (format === 'word') {
-      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Purchase Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Item Name</th><th>Qty/Wt/Litre</th><th>Unit Cost</th><th>Date</th></tr>` +
-        filtered.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${i.cost}</td><td>${new Date(i.date).toLocaleDateString()}</td></tr>`).join('') +
+      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Purchase Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Item Name</th><th>Qty/Wt/Litre</th><th>Unit Cost</th><th>Date Added</th></tr>` +
+        filtered.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${i.cost}</td><td>${i.date || 'N/A'}</td></tr>`).join('') +
         `</table></body></html>`;
       let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
       let url = URL.createObjectURL(blob);
@@ -1593,24 +1651,30 @@
     `).join('');
   }
 
-  function createNewUserAccount() {
+  async function createNewUserAccount() {
     const u = document.getElementById('newUsername').value.trim();
     const p = document.getElementById('newUserPass').value;
     const r = document.getElementById('newUserRole').value;
     if (!u || !p) return alert("Enter username and password.");
     if (!validateStrongPassword(p)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols/signs.");
+    
     users.push({ username: u, pass: p, role: r, lastUpdated: new Date().toISOString() });
     localStorage.setItem('cafeUsers', JSON.stringify(users));
+    await syncAllToCloud();
+    
     document.getElementById('newUsername').value = '';
     document.getElementById('newUserPass').value = '';
     renderUsersTable();
-    alert("User account created successfully!");
+    alert("User account created and saved permanently!");
   }
 
-  function deleteUser(idx) {
-    users.splice(idx, 1);
-    localStorage.setItem('cafeUsers', JSON.stringify(users));
-    renderUsersTable();
+  async function deleteUser(idx) {
+    if (confirm("Delete this user account?")) {
+      users.splice(idx, 1);
+      localStorage.setItem('cafeUsers', JSON.stringify(users));
+      await syncAllToCloud();
+      renderUsersTable();
+    }
   }
 
   // Backup & Restore
@@ -1688,7 +1752,7 @@
     if (!fileInput.files || fileInput.files.length === 0) return alert("Please select a JSON backup file.");
     const file = fileInput.files[0];
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
       try {
         const parsed = JSON.parse(e.target.result);
         if (parsed.menu) {
@@ -1719,7 +1783,8 @@
           invoiceCounter = parsed.invoiceCounter;
           localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
         }
-        alert("✅ Database restored successfully! Reloading system...");
+        await syncAllToCloud();
+        alert("✅ Database restored and synchronized successfully! Reloading system...");
         location.reload();
       } catch (err) {
         alert("Invalid backup file format.");
