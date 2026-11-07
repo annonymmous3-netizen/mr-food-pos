@@ -26,17 +26,32 @@
       --pdf-color: #B30B00;
       --word-color: #2B579A;
     }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Night Mode CSS Variables Overrides */
+    body.night-mode {
+      --arctic: #2C3E50;
+      --sapphire: #34495E;
+      --sapphire-dark: #1F2C38;
+      --text-dark: #ECF0F1;
+      --bg-light: #18222D;
+      --white: #243342;
+      --border-color: #34495E;
+    }
+
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
     .view-screen { display: none; }
     .view-screen.active { display: flex; }
     #authContainer { min-height: 100vh; width: 100%; background: linear-gradient(135deg, var(--arctic) 0%, var(--sapphire) 100%); align-items: center; justify-content: center; }
     .auth-card { background: var(--white); padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 420px; box-sizing: border-box; }
     .auth-header { text-align: center; margin-bottom: 20px; }
     .auth-header h2 { margin: 0 0 5px 0; color: var(--sapphire-dark); font-size: 22px; }
-    .auth-header p { margin: 0; font-size: 13px; color: #666; }
+    body.night-mode .auth-header h2 { color: var(--text-dark); }
+    .auth-header p { margin: 0; font-size: 13px; color: #888; }
     .arabic-title { font-size: 20px; font-weight: bold; color: var(--sapphire-dark); text-align: center; margin-bottom: 10px; }
+    body.night-mode .arabic-title { color: #58938E; }
+
     #appContainer { flex-direction: column; height: 100vh; overflow: hidden; }
-    .top-bar { background-color: var(--sapphire); color: var(--white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .top-bar { background-color: var(--sapphire); color: #FFFFFF; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .top-bar .brand { font-weight: bold; font-size: 18px; }
     .top-bar .user-info { display: flex; align-items: center; gap: 12px; }
     .app-viewport { display: flex; flex: 1; height: calc(100vh - 50px); overflow: hidden; }
@@ -52,13 +67,15 @@
     .panel-section { display: none; background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
     .panel-section.active { display: block; }
     .panel-title { font-size: 18px; font-weight: bold; color: var(--sapphire-dark); margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--arctic); padding-bottom: 8px; }
+    body.night-mode .panel-title { color: #58938E; }
+
     label { font-size: 13px; font-weight: bold; margin-top: 10px; display: block; color: var(--text-dark); }
-    input, select, textarea { padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; border: 1px solid var(--sapphire); font-size: 13px; outline: none; }
+    input, select, textarea { padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; border: 1px solid var(--sapphire); font-size: 13px; outline: none; background: var(--white); color: var(--text-dark); }
     input:focus, select:focus, textarea:focus { border-color: var(--sapphire-dark); box-shadow: 0 0 0 2px rgba(114, 176, 171, 0.2); }
     
     button, .btn { 
       padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; 
-      background-color: var(--sapphire); color: var(--white); font-weight: bold; border: none; cursor: pointer; 
+      background-color: var(--sapphire); color: #FFFFFF; font-weight: bold; border: none; cursor: pointer; 
       transition: all 0.1s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.12); user-select: none; outline: none; display: inline-block; text-align: center;
     }
     button:hover, .btn:hover { background-color: var(--sapphire-dark); box-shadow: 0 4px 8px rgba(0,0,0,0.18); }
@@ -66,22 +83,20 @@
 
     .btn-secondary { background-color: var(--arctic); color: var(--text-dark); }
     .btn-secondary:hover { background-color: #a8cfce; }
-    .btn-danger { background-color: var(--danger); color: var(--white); }
-    .btn-success { background-color: var(--success); color: var(--white); }
-    .btn-excel { background-color: var(--excel-color); color: var(--white); }
-    .btn-pdf { background-color: var(--pdf-color); color: var(--white); }
-    .btn-word { background-color: var(--word-color); color: var(--white); }
+    .btn-danger { background-color: var(--danger); color: #FFFFFF; }
+    .btn-success { background-color: var(--success); color: #FFFFFF; }
     .btn-sm { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
     
     .pos-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
-    .receipt-container { font-family: 'Courier New', Courier, monospace; font-weight: bold; background-color: #fff; padding: 12px; border: 1px solid var(--sapphire); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 4px; width: 300px; margin: 0 auto; color: #000; box-sizing: border-box; }
+    .receipt-container { font-family: 'Courier New', Courier, monospace; font-weight: bold; background-color: #FFF; padding: 12px; border: 1px solid var(--sapphire); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 4px; width: 300px; margin: 0 auto; color: #000 !important; box-sizing: border-box; }
+    .receipt-container * { color: #000 !important; }
     .dashed-line { border-bottom: 1px dashed #000; margin: 6px 0; }
     .item-table, .info-table, .totals-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .item-table th, .item-table td { padding: 3px 0; }
     .item-table th { border-top: 1px dashed #000; border-bottom: 1px dashed #000; }
     .text-center { text-align: center; } .text-right { text-align: right; } .text-left { text-align: left; }
     .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-    .data-table th, .data-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; vertical-align: middle; }
+    .data-table th, .data-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; vertical-align: middle; color: var(--text-dark); }
     .data-table th { background-color: var(--arctic); color: var(--text-dark); }
     .table-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
     .analytics-box { background: var(--bg-light); border: 1px solid var(--sapphire); padding: 12px; border-radius: 6px; margin-top: 15px; }
@@ -92,7 +107,10 @@
     .badge-counter { background: var(--danger); color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; margin-left: 5px; }
     
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; }
-    .modal-card { background: white; padding: 20px; border-radius: 8px; max-width: 380px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-card { background: var(--white); padding: 20px; border-radius: 8px; max-width: 380px; width: 90%; max-height: 90vh; overflow-y: auto; color: var(--text-dark); }
+
+    /* Day / Night Mode Toggle Switch Styling */
+    .mode-switch-container { display: flex; align-items: center; justify-content: space-between; background: var(--bg-light); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
 
     @media print {
       body * { visibility: hidden; }
@@ -378,7 +396,7 @@
             <label>Image URL (or upload image below):</label>
             <input type="text" id="newMenuImg" placeholder="https://example.com/image.jpg">
             <label>Upload Image from Phone / Laptop Storage:</label>
-            <input type="file" id="menuImageFile" accept="image/*" onchange="handleMenuImageUpload(event)" style="padding:6px; background:#fff;">
+            <input type="file" id="menuImageFile" accept="image/*" onchange="handleMenuImageUpload(event)" style="padding:6px; background:var(--white);">
             <button class="btn btn-success" onclick="saveMenuItem()">Save Item to Menu</button>
             <button class="btn btn-secondary" id="cancelMenuEdit" style="display:none;" onclick="resetMenuForm()">Cancel Edit</button>
           </div>
@@ -569,7 +587,17 @@
         <!-- Account & Settings Panel -->
         <div id="settingsPanel" class="panel-section">
           <div class="panel-title">Account & Preferences</div>
+          
+          <!-- DAY / NIGHT MODE SWITCH -->
           <div style="max-width: 400px;">
+            <h4>Display Theme Mode</h4>
+            <div class="mode-switch-container">
+              <span><b>System Display Theme:</b></span>
+              <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleDisplayTheme()" style="width:auto;">☀️ Day Mode</button>
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+
             <h4>Change Current User Password</h4>
             <label>Current Password:</label>
             <input type="password" id="currentPassInput">
@@ -631,6 +659,23 @@
   let currentBill = [];
   let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
 
+  // ── DAY / NIGHT MODE CONTROLLER ──
+  function initDisplayTheme() {
+    const savedTheme = localStorage.getItem('cafeTheme') || 'day';
+    if (savedTheme === 'night') {
+      document.body.classList.add('night-mode');
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.innerText = '🌙 Night Mode';
+    }
+  }
+
+  function toggleDisplayTheme() {
+    const isNight = document.body.classList.toggle('night-mode');
+    const newTheme = isNight ? 'night' : 'day';
+    localStorage.setItem('cafeTheme', newTheme);
+    document.getElementById('themeToggleBtn').innerText = isNight ? '🌙 Night Mode' : '☀️ Day Mode';
+  }
+
   function validateStrongPassword(pass) {
     const hasUpper = /[A-Z]/.test(pass);
     const hasLower = /[a-z]/.test(pass);
@@ -679,6 +724,7 @@
   }
 
   async function initSystem() {
+    initDisplayTheme();
     await fetchCloudDataOnStart();
     document.getElementById('loginCard').style.display = 'block';
     document.getElementById('firstTimeCard').style.display = 'none';
@@ -1127,7 +1173,7 @@
     const tbody = document.getElementById('completedOrdersTableBody');
     if (!tbody) return;
     if (completedOnlineOrders.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No completed online orders archive.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No completed orders archive.</td></tr>';
       return;
     }
     tbody.innerHTML = completedOnlineOrders.slice().reverse().map(o => `
@@ -1216,10 +1262,13 @@
     }
   }
 
+  // ── UPDATED FACTORY RESET ACCEPTING ADMIN PASSWORD OR MASTER KEY ──
   function triggerWebsiteReset() {
-    const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password to wipe system:");
-    if (!enteredPass || enteredPass !== currentUser.pass) return alert("Incorrect password.");
-    if (confirm("Reset everything?")) {
+    const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password or Master Key to wipe system:");
+    if (!enteredPass || (enteredPass !== currentUser.pass && enteredPass !== MASTER_KEY)) {
+      return alert("Incorrect password or Master Key.");
+    }
+    if (confirm("Reset everything? This action cannot be undone!")) {
       localStorage.clear();
       location.reload();
     }
