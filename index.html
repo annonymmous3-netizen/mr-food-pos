@@ -8,6 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Supabase CDN JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
     :root {
@@ -164,7 +166,7 @@
       <div class="brand">MR FOOD CAFE NAVEED - ERP Dashboard</div>
       <div class="arabic-title" style="color: #fff; margin:0; font-size:16px;">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
       <div class="user-info">
-        <button class="btn btn-success btn-sm" onclick="syncAllToCloud()">☁️ Sync to Customer Site</button>
+        <button class="btn btn-success btn-sm" onclick="syncAllToCloud()">☁️ Force Sync to Customer Site</button>
         <span id="userRoleBadge" style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px;">Role: Admin</span>
         <button class="btn btn-danger btn-sm" onclick="logout()">Logout 🔒</button>
       </div>
@@ -596,8 +598,13 @@
   </div>
 
 <script>
-  const BIN_ID = '6aca165fffd5d160535eb6ec';
-  const API_KEY = '$2a$10$bLSrQ4H2Ir7dRVTTM09/9.5bkQRKoXbT47QspaCrchBOm9vk.ceTu';
+  // ── SUPABASE CONFIGURATION ──
+  const SUPABASE_URL = 'https://mavjzmuathawcvuxaguo.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdmp6bXVhdGhhd2N2dXhhZ3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjU4NDAsImV4cCI6MjEwOTMwMTg0MH0.M4qy0QgGgv04mP4SW-NwRNwdY5BrGV04hUDpUmg6uj0';
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const MASTER_KEY = 'NaveedCafe2026!';
   const defaultFoodImg = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150';
 
@@ -634,35 +641,35 @@
 
   async function fetchCloudDataOnStart() {
     try {
-      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
-      let data = await res.json();
-      if (data.record) {
-        if (data.record.users && data.record.users.length > 0) {
-          users = data.record.users;
+      const { data, error } = await db.from('cafe_store').select('data').eq('id', 1).single();
+      if (data && data.data) {
+        let rec = data.data;
+        if (rec.users && rec.users.length > 0) {
+          users = rec.users;
           localStorage.setItem('cafeUsers', JSON.stringify(users));
         }
-        if (data.record.menu) {
-          menu = data.record.menu;
+        if (rec.menu) {
+          menu = rec.menu;
           localStorage.setItem('cafeMenu', JSON.stringify(menu));
         }
-        if (data.record.deals) {
-          deals = data.record.deals;
+        if (rec.deals) {
+          deals = rec.deals;
           localStorage.setItem('cafeDeals', JSON.stringify(deals));
         }
-        if (data.record.inventory) {
-          inventory = data.record.inventory;
+        if (rec.inventory) {
+          inventory = rec.inventory;
           localStorage.setItem('cafeInventory', JSON.stringify(inventory));
         }
-        if (data.record.sales) {
-          sales = data.record.sales;
+        if (rec.sales) {
+          sales = rec.sales;
           localStorage.setItem('cafeSales', JSON.stringify(sales));
         }
-        if (data.record.completedOrders) {
-          completedOnlineOrders = data.record.completedOrders;
+        if (rec.completedOrders) {
+          completedOnlineOrders = rec.completedOrders;
           localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
         }
-        if (data.record.invoiceCounter) {
-          invoiceCounter = data.record.invoiceCounter;
+        if (rec.invoiceCounter) {
+          invoiceCounter = rec.invoiceCounter;
           localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
         }
       }
@@ -699,7 +706,6 @@
     const alertBox = document.getElementById('loginAlert');
     alertBox.style.display = 'none';
 
-    // Re-sync with cloud before verifying to ensure password set on another device is recognized
     await fetchCloudDataOnStart();
 
     const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
@@ -920,7 +926,6 @@
     resetCurrentBill();
   }
 
-  // Receipts Period & Search Filters
   function toggleReceiptsCustomDate() {
     const val = document.getElementById('receiptsPeriodFilter').value;
     document.getElementById('receiptsCustomDateRange').style.display = val === 'custom' ? 'block' : 'none';
@@ -1061,7 +1066,6 @@
     renderBillList();
   }
 
-  // Online Orders Tabs & Completion
   function switchOnlineTab(tab) {
     if (tab === 'pending') {
       document.getElementById('onlinePendingSubPanel').style.display = 'block';
@@ -1079,12 +1083,12 @@
 
   async function fetchOnlineOrders(userAlert = false) {
     try {
-      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
-      let data = await res.json();
-      if (data.record) {
-        pendingOnlineOrders = data.record.orders || [];
-        if (data.record.completedOrders) {
-          completedOnlineOrders = data.record.completedOrders;
+      const { data, error } = await db.from('cafe_store').select('data').eq('id', 1).single();
+      if (data && data.data) {
+        let rec = data.data;
+        pendingOnlineOrders = rec.orders || [];
+        if (rec.completedOrders) {
+          completedOnlineOrders = rec.completedOrders;
           localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
         }
       }
@@ -1188,9 +1192,8 @@
 
   async function syncAllToCloud() {
     try {
-      let res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
-      let data = await res.json();
-      let record = data.record || {};
+      const { data } = await db.from('cafe_store').select('data').eq('id', 1).single();
+      let record = (data && data.data) ? data.data : {};
 
       record.menu = menu;
       record.deals = deals;
@@ -1199,15 +1202,17 @@
       record.completedOrders = completedOnlineOrders;
       record.users = users;
       record.invoiceCounter = invoiceCounter;
+      record.sales = sales;
+      record.inventory = inventory;
 
-      await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-        body: JSON.stringify(record)
-      });
-      console.log("✅ Synced successfully to cloud!");
+      const { error } = await db.from('cafe_store').upsert({ id: 1, data: record });
+      if (error) {
+        alert("Sync Error: " + error.message);
+      } else {
+        alert("✅ Successfully synced menu, deals, and records to Supabase!");
+      }
     } catch (e) {
-      console.log("Cloud sync failed.");
+      alert("Cloud sync failed.");
     }
   }
 
@@ -1220,7 +1225,6 @@
     }
   }
 
-  // Menu, Deals, Inventory & Analytics
   let uploadedImageBase64 = '';
   function handleMenuImageUpload(event) {
     const file = event.target.files[0];
@@ -1272,7 +1276,6 @@
     renderMenuTable();
     renderMenuDropdown();
     populateAnalyticsDropdown();
-    alert("Menu item saved permanently and synchronized with customer site!");
   }
 
   function editMenuItem(idx) {
@@ -1344,7 +1347,6 @@
     await syncAllToCloud();
     resetDealForm();
     renderDealsTable();
-    alert("Deal saved successfully and synced!");
   }
 
   function editDealItem(idx) {
@@ -1637,7 +1639,6 @@
     }
   }
 
-  // Users Management
   function renderUsersTable() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
@@ -1677,7 +1678,6 @@
     }
   }
 
-  // Backup & Restore
   function toggleBackupCustomDate() {
     const val = document.getElementById('backupPeriodSelect').value;
     document.getElementById('backupCustomDateRange').style.display = val === 'custom' ? 'block' : 'none';
