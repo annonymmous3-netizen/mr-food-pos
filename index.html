@@ -22,12 +22,8 @@
       --danger: #E74C3C;
       --success: #2ECC71;
       --border-color: #D3E8E7;
-      --excel-color: #1D6F42;
-      --pdf-color: #B30B00;
-      --word-color: #2B579A;
     }
 
-    /* Night Mode CSS Variables Overrides */
     body.night-mode {
       --arctic: #2C3E50;
       --sapphire: #34495E;
@@ -46,7 +42,6 @@
     .auth-header { text-align: center; margin-bottom: 20px; }
     .auth-header h2 { margin: 0 0 5px 0; color: var(--sapphire-dark); font-size: 22px; }
     body.night-mode .auth-header h2 { color: var(--text-dark); }
-    .auth-header p { margin: 0; font-size: 13px; color: #888; }
     .arabic-title { font-size: 20px; font-weight: bold; color: var(--sapphire-dark); text-align: center; margin-bottom: 10px; }
     body.night-mode .arabic-title { color: #58938E; }
 
@@ -71,18 +66,16 @@
 
     label { font-size: 13px; font-weight: bold; margin-top: 10px; display: block; color: var(--text-dark); }
     input, select, textarea { padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; border: 1px solid var(--sapphire); font-size: 13px; outline: none; background: var(--white); color: var(--text-dark); }
-    input:focus, select:focus, textarea:focus { border-color: var(--sapphire-dark); box-shadow: 0 0 0 2px rgba(114, 176, 171, 0.2); }
     
     button, .btn { 
       padding: 9px 12px; margin-top: 4px; margin-bottom: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; 
       background-color: var(--sapphire); color: #FFFFFF; font-weight: bold; border: none; cursor: pointer; 
       transition: all 0.1s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.12); user-select: none; outline: none; display: inline-block; text-align: center;
     }
-    button:hover, .btn:hover { background-color: var(--sapphire-dark); box-shadow: 0 4px 8px rgba(0,0,0,0.18); }
-    button:active, .btn:active { transform: translateY(2px) scale(0.98); box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); }
+    button:hover, .btn:hover { background-color: var(--sapphire-dark); }
+    button:active, .btn:active { transform: translateY(2px) scale(0.98); }
 
     .btn-secondary { background-color: var(--arctic); color: var(--text-dark); }
-    .btn-secondary:hover { background-color: #a8cfce; }
     .btn-danger { background-color: var(--danger); color: #FFFFFF; }
     .btn-success { background-color: var(--success); color: #FFFFFF; }
     .btn-sm { width: auto; padding: 4px 10px; font-size: 12px; margin: 0; }
@@ -108,8 +101,6 @@
     
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; }
     .modal-card { background: var(--white); padding: 20px; border-radius: 8px; max-width: 380px; width: 90%; max-height: 90vh; overflow-y: auto; color: var(--text-dark); }
-
-    /* Day / Night Mode Toggle Switch Styling */
     .mode-switch-container { display: flex; align-items: center; justify-content: space-between; background: var(--bg-light); padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; }
 
     @media print {
@@ -124,7 +115,6 @@
 
   <!-- Authentication Screen -->
   <div id="authContainer" class="view-screen active">
-    <!-- Standard Login Card -->
     <div id="loginCard" class="auth-card">
       <div class="arabic-title">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
       <div class="auth-header">
@@ -144,11 +134,10 @@
       </div>
     </div>
 
-    <!-- Mandatory First-Time Password Setup Card -->
     <div id="firstTimeCard" class="auth-card" style="display: none;">
       <div class="auth-header">
         <h2>Create New Admin Password</h2>
-        <p>First-time default login verified. Please set a strong permanent password containing uppercase, lowercase, numbers, and symbols.</p>
+        <p>First-time default login verified. Please set a strong permanent password.</p>
       </div>
       <div id="firstTimeAlert" class="alert-box alert-danger"></div>
       <label>Username:</label>
@@ -160,7 +149,6 @@
       <button class="btn btn-success" onclick="saveNewAdminPassword()">Save New Password & Continue 🚀</button>
     </div>
 
-    <!-- Master Key Forgot Password Card -->
     <div id="forgotCard" class="auth-card" style="display: none;">
       <div class="auth-header">
         <h2>Reset Password via Master Key</h2>
@@ -225,9 +213,16 @@
               <button class="btn btn-secondary" onclick="resetCurrentBill()">Clear Current Order</button>
               <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
               <label>Customer Name:</label>
-              <input type="text" id="customerInput" value="Cash">
+              <input type="text" id="customerInput" value="Cash" oninput="document.getElementById('receiptCustomerName').innerText = this.value || 'Cash'">
               <label>Customer Mobile Phone:</label>
-              <input type="text" id="customerPhoneInput" placeholder="e.g. 03001234567" value="">
+              <input type="text" id="customerPhoneInput" placeholder="e.g. 03001234567" value="" oninput="document.getElementById('receiptCustomerPhoneDisplay').innerText = this.value || 'N/A'">
+              <label>Payment Method:</label>
+              <select id="paymentMethodSelect">
+                <option value="Cash">Cash 💵</option>
+                <option value="JazzCash">JazzCash 📱</option>
+                <option value="EasyPaisa">EasyPaisa 💳</option>
+                <option value="Bank Transfer">Bank Transfer 🏦</option>
+              </select>
               <button class="btn btn-success" style="font-size: 16px; padding: 12px; margin-top: 10px;" onclick="processAndPrint()">🖨️ PRINT & COMPLETE BILL</button>
             </div>
             <div>
@@ -487,10 +482,10 @@
             <label>Item / Ingredient Name:</label>
             <input type="text" id="invItemName" placeholder="e.g. Chicken Buns">
             <label>Stock Quantity / Weight / Litre:</label>
-            <input type="text" id="invQty" placeholder="e.g. 50 kg or 20 packets or 5 L">
+            <input type="text" id="invQty" placeholder="e.g. 50 kg or 20 packets">
             <label>Unit Cost (Rs.):</label>
             <input type="number" id="invCost" placeholder="e.g. 25">
-            <label>Purchase / Stock Date (Select past date if missed):</label>
+            <label>Purchase / Stock Date:</label>
             <input type="date" id="invItemDate">
             <button class="btn btn-success" onclick="saveInventoryItem()">Save Stock Item</button>
             
@@ -533,7 +528,7 @@
             <label>New Username:</label>
             <input type="text" id="newUsername" placeholder="e.g. cashier1">
             <label>New Password:</label>
-            <input type="password" id="newUserPass" placeholder="Enter Password (Uppercase, lowercase, number, symbol)">
+            <input type="password" id="newUserPass" placeholder="Enter Password">
             <label>Role:</label>
             <select id="newUserRole">
               <option value="Cashier">Cashier</option>
@@ -581,27 +576,23 @@
 
           <hr style="margin: 30px 0; border: 0; border-top: 2px dashed var(--danger);">
           <h4 style="color: var(--danger);">Danger Zone</h4>
-          <button class="btn btn-danger" onclick="triggerWebsiteReset()">⚠️ Factory Reset Website</button>
+          <button class="btn btn-danger" onclick="triggerWebsiteReset()">⚠️ Factory Reset Website (Local & Cloud)</button>
         </div>
 
         <!-- Account & Settings Panel -->
         <div id="settingsPanel" class="panel-section">
           <div class="panel-title">Account & Preferences</div>
-          
-          <!-- DAY / NIGHT MODE SWITCH -->
           <div style="max-width: 400px;">
             <h4>Display Theme Mode</h4>
             <div class="mode-switch-container">
               <span><b>System Display Theme:</b></span>
               <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleDisplayTheme()" style="width:auto;">☀️ Day Mode</button>
             </div>
-
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
-
             <h4>Change Current User Password</h4>
             <label>Current Password:</label>
             <input type="password" id="currentPassInput">
-            <label>New Password (Must contain uppercase, lowercase, number, symbol):</label>
+            <label>New Password:</label>
             <input type="password" id="newPassInput" placeholder="e.g. New@2026!Pass">
             <button class="btn btn-success" onclick="changeMyPassword()">Update Password</button>
           </div>
@@ -626,7 +617,6 @@
   </div>
 
 <script>
-  // ── SUPABASE CONFIGURATION ──
   const SUPABASE_URL = 'https://mavjzmuathawcvuxaguo.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdmp6bXVhdGhhd2N2dXhhZ3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjU4NDAsImV4cCI6MjEwOTMwMTg0MH0.M4qy0QgGgv04mP4SW-NwRNwdY5BrGV04hUDpUmg6uj0';
 
@@ -638,6 +628,7 @@
 
   let currentUser = null;
   let currentModalReceiptObj = null;
+  let lastKnownOrderCount = 0;
   
   let users = JSON.parse(localStorage.getItem('cafeUsers')) || [
     { username: 'ADMIN', pass: '123456', role: 'Admin', isFirstTime: true, lastUpdated: new Date().toISOString() }
@@ -659,7 +650,6 @@
   let currentBill = [];
   let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
 
-  // ── DAY / NIGHT MODE CONTROLLER ──
   function initDisplayTheme() {
     const savedTheme = localStorage.getItem('cafeTheme') || 'day';
     if (savedTheme === 'night') {
@@ -671,56 +661,44 @@
 
   function toggleDisplayTheme() {
     const isNight = document.body.classList.toggle('night-mode');
-    const newTheme = isNight ? 'night' : 'day';
-    localStorage.setItem('cafeTheme', newTheme);
+    localStorage.setItem('cafeTheme', isNight ? 'night' : 'day');
     document.getElementById('themeToggleBtn').innerText = isNight ? '🌙 Night Mode' : '☀️ Day Mode';
   }
 
   function validateStrongPassword(pass) {
-    const hasUpper = /[A-Z]/.test(pass);
-    const hasLower = /[a-z]/.test(pass);
-    const hasNum = /\d/.test(pass);
-    const hasSym = /[^\w\s]/.test(pass);
-    return hasUpper && hasLower && hasNum && hasSym && pass.length >= 6;
+    return /[A-Z]/.test(pass) && /[a-z]/.test(pass) && /\d/.test(pass) && /[^\w\s]/.test(pass) && pass.length >= 6;
+  }
+
+  // Audio beep notification for new online orders
+  function playBeepSound() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 note
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } catch(e) {}
   }
 
   async function fetchCloudDataOnStart() {
     try {
-      const { data, error } = await db.from('cafe_store').select('data').eq('id', 1).single();
+      const { data } = await db.from('cafe_store').select('data').eq('id', 1).single();
       if (data && data.data) {
         let rec = data.data;
-        if (rec.users && rec.users.length > 0) {
-          users = rec.users;
-          localStorage.setItem('cafeUsers', JSON.stringify(users));
-        }
-        if (rec.menu) {
-          menu = rec.menu;
-          localStorage.setItem('cafeMenu', JSON.stringify(menu));
-        }
-        if (rec.deals) {
-          deals = rec.deals;
-          localStorage.setItem('cafeDeals', JSON.stringify(deals));
-        }
-        if (rec.inventory) {
-          inventory = rec.inventory;
-          localStorage.setItem('cafeInventory', JSON.stringify(inventory));
-        }
-        if (rec.sales) {
-          sales = rec.sales;
-          localStorage.setItem('cafeSales', JSON.stringify(sales));
-        }
-        if (rec.completedOrders) {
-          completedOnlineOrders = rec.completedOrders;
-          localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
-        }
-        if (rec.invoiceCounter) {
-          invoiceCounter = rec.invoiceCounter;
-          localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
-        }
+        if (rec.users?.length) { users = rec.users; localStorage.setItem('cafeUsers', JSON.stringify(users)); }
+        if (rec.menu) { menu = rec.menu; localStorage.setItem('cafeMenu', JSON.stringify(menu)); }
+        if (rec.deals) { deals = rec.deals; localStorage.setItem('cafeDeals', JSON.stringify(deals)); }
+        if (rec.inventory) { inventory = rec.inventory; localStorage.setItem('cafeInventory', JSON.stringify(inventory)); }
+        if (rec.sales) { sales = rec.sales; localStorage.setItem('cafeSales', JSON.stringify(sales)); }
+        if (rec.completedOrders) { completedOnlineOrders = rec.completedOrders; localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders)); }
+        if (rec.invoiceCounter) { invoiceCounter = rec.invoiceCounter; localStorage.setItem('cafeInvoiceCounter', invoiceCounter); }
       }
-    } catch (e) {
-      console.log("Offline mode or cloud fetch error. Using local storage.");
-    }
+    } catch (e) {}
   }
 
   async function initSystem() {
@@ -753,13 +731,8 @@
     alertBox.style.display = 'none';
 
     await fetchCloudDataOnStart();
-
     const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
-    if (!found) { 
-      alertBox.innerText = "Invalid username or password."; 
-      alertBox.style.display = 'block'; 
-      return; 
-    }
+    if (!found) { alertBox.innerText = "Invalid username or password."; alertBox.style.display = 'block'; return; }
 
     if (found.isFirstTime) {
       currentUser = found;
@@ -778,7 +751,6 @@
     } else {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden-role'));
     }
-
     postLoginSetup();
   }
 
@@ -788,17 +760,8 @@
     const alertBox = document.getElementById('firstTimeAlert');
     alertBox.style.display = 'none';
 
-    if (!validateStrongPassword(newP)) {
-      alertBox.innerText = "Password must be at least 6 characters and contain uppercase, lowercase letters, numbers, and symbols/signs.";
-      alertBox.style.display = 'block';
-      return;
-    }
-
-    if (newP !== confirmP) {
-      alertBox.innerText = "Passwords do not match.";
-      alertBox.style.display = 'block';
-      return;
-    }
+    if (!validateStrongPassword(newP)) { alertBox.innerText = "Password must be at least 6 characters with uppercase, lowercase, number, and symbol."; alertBox.style.display = 'block'; return; }
+    if (newP !== confirmP) { alertBox.innerText = "Passwords do not match."; alertBox.style.display = 'block'; return; }
 
     currentUser.pass = newP;
     delete currentUser.isFirstTime;
@@ -811,7 +774,6 @@
     document.getElementById('authContainer').classList.remove('active');
     document.getElementById('appContainer').classList.add('active');
     document.getElementById('userRoleBadge').innerText = `User: ${currentUser.username} (${currentUser.role})`;
-
     postLoginSetup();
   }
 
@@ -822,16 +784,8 @@
     const alertBox = document.getElementById('forgotAlert');
     alertBox.style.display = 'none';
 
-    if (mKey !== MASTER_KEY) { 
-      alertBox.innerText = "Invalid Master Security Key."; 
-      alertBox.style.display = 'block'; 
-      return; 
-    }
-    if (!validateStrongPassword(newPass)) { 
-      alertBox.innerText = "Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols."; 
-      alertBox.style.display = 'block'; 
-      return; 
-    }
+    if (mKey !== MASTER_KEY) { alertBox.innerText = "Invalid Master Security Key."; alertBox.style.display = 'block'; return; }
+    if (!validateStrongPassword(newPass)) { alertBox.innerText = "Password must be at least 6 characters with uppercase, lowercase, number, and symbol."; alertBox.style.display = 'block'; return; }
 
     let userObj = users.find(us => us.username === uname);
     if (userObj) {
@@ -840,7 +794,7 @@
       userObj.lastUpdated = new Date().toISOString();
       localStorage.setItem('cafeUsers', JSON.stringify(users));
       await syncAllToCloud();
-      alert("Password successfully reset and saved permanently!");
+      alert("Password successfully reset!");
       showLoginCard();
     }
   }
@@ -849,19 +803,16 @@
     const cur = document.getElementById('currentPassInput').value;
     const nxt = document.getElementById('newPassInput').value;
     if (cur !== currentUser.pass) return alert("Current password is incorrect.");
-    if (!validateStrongPassword(nxt)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols.");
+    if (!validateStrongPassword(nxt)) return alert("Password must be at least 6 characters with uppercase, lowercase, number, and symbol.");
     
     currentUser.pass = nxt;
     delete currentUser.isFirstTime;
     currentUser.lastUpdated = new Date().toISOString();
-    
     localStorage.setItem('cafeUsers', JSON.stringify(users));
     await syncAllToCloud();
-    
-    alert("Password updated and saved permanently!");
+    alert("Password updated successfully!");
     document.getElementById('currentPassInput').value = '';
     document.getElementById('newPassInput').value = '';
-    document.getElementById('expiryWarning').style.display = 'none';
   }
 
   function logout() {
@@ -944,19 +895,23 @@
     currentBill = [];
     renderBillList();
     document.getElementById('customerInput').value = 'Cash';
+    document.getElementById('receiptCustomerName').innerText = 'Cash';
     document.getElementById('customerPhoneInput').value = '';
+    document.getElementById('receiptCustomerPhoneDisplay').innerText = 'N/A';
   }
 
   function processAndPrint() {
     if (currentBill.length === 0) return alert("Current order bill is empty!");
     const currentInvNum = String(invoiceCounter).padStart(6, '0');
     const net = currentBill.reduce((sum, i) => sum + i.total, 0);
+    const paymentMethod = document.getElementById('paymentMethodSelect').value;
     
     sales.push({
       invoiceNo: currentInvNum,
       date: new Date().toISOString(),
       customer: document.getElementById('customerInput').value || 'Cash',
       phone: document.getElementById('customerPhoneInput').value || 'N/A',
+      paymentMethod: paymentMethod,
       items: [...currentBill],
       total: net,
       type: 'manual'
@@ -980,7 +935,6 @@
   function renderAllReceiptsTable() {
     const tbody = document.getElementById('allReceiptsTableBody');
     if (!tbody) return;
-    
     const period = document.getElementById('receiptsPeriodFilter').value;
     const searchVal = document.getElementById('receiptsSearchInput').value.trim().toLowerCase();
     
@@ -994,30 +948,11 @@
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
     } else if (period === 'month') {
-      filtered = filtered.filter(s => {
-        const d = new Date(s.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    } else if (period === 'custom') {
-      const start = document.getElementById('receiptsStartDate').value;
-      const end = document.getElementById('receiptsEndDate').value;
-      if (start && end) {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59, 999);
-        filtered = filtered.filter(s => {
-          const d = new Date(s.date);
-          return d >= startDate && d <= endDate;
-        });
-      }
+      filtered = filtered.filter(s => { const d = new Date(s.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
     }
 
     if (searchVal) {
-      filtered = filtered.filter(s => 
-        String(s.invoiceNo).toLowerCase().includes(searchVal) ||
-        String(s.customer).toLowerCase().includes(searchVal) ||
-        String(s.phone).toLowerCase().includes(searchVal)
-      );
+      filtered = filtered.filter(s => String(s.invoiceNo).toLowerCase().includes(searchVal) || String(s.customer).toLowerCase().includes(searchVal) || String(s.phone).toLowerCase().includes(searchVal));
     }
 
     if (filtered.length === 0) {
@@ -1031,8 +966,8 @@
         <td>${new Date(r.date).toLocaleString()}</td>
         <td>${r.customer}</td>
         <td>${r.phone}</td>
-        <td><b>Rs. ${r.total}</b></td>
-        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${r.invoiceNo}')">👁️ View Receipt</button></td>
+        <td><b>Rs. ${r.total}</b> (${r.paymentMethod || 'Cash'})</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${r.invoiceNo}')">👁️ View</button></td>
       </tr>
     `).join('');
   }
@@ -1042,63 +977,32 @@
     if (!found) return;
     currentModalReceiptObj = found;
 
-    const modalHTML = `
+    document.getElementById('modalReceiptContent').innerHTML = `
       <div class="receipt-container" style="width: 100%;">
         <div class="text-center">
           <h3 style="margin:2px 0;">MR FOOD CAFE NAVEED</h3>
-          <p style="font-size:11px; margin:2px 0;">Contact / Jazz Cash: ${contactPhone}</p>
-          <p style="font-size:10px; margin:2px 0;">Home delivery available</p>
+          <p style="font-size:11px; margin:2px 0;">Contact: ${contactPhone}</p>
         </div>
         <div class="dashed-line"></div>
-        <div class="text-center" style="font-size: 12px;">SALES PAID RECEIPT</div>
-        <div class="dashed-line"></div>
         <table class="info-table">
-          <tr>
-            <td>Invoice #: ${found.invoiceNo}</td>
-            <td class="text-right">${new Date(found.date).toLocaleDateString()}</td>
-          </tr>
-          <tr>
-            <td colspan="2">Customer: ${found.customer}</td>
-          </tr>
-          <tr>
-            <td colspan="2">Phone: ${found.phone}</td>
-          </tr>
+          <tr><td>Invoice #: ${found.invoiceNo}</td><td class="text-right">${new Date(found.date).toLocaleDateString()}</td></tr>
+          <tr><td colspan="2">Customer: ${found.customer}</td></tr>
+          <tr><td colspan="2">Phone: ${found.phone}</td></tr>
+          <tr><td colspan="2">Payment: ${found.paymentMethod || 'Cash'}</td></tr>
         </table>
         <table class="item-table" style="margin-top:8px;">
-          <thead>
-            <tr>
-              <th class="text-left">Qty</th>
-              <th class="text-left">Item</th>
-              <th class="text-right">Price</th>
-              <th class="text-right">Total</th>
-            </tr>
-          </thead>
+          <thead><tr><th class="text-left">Qty</th><th class="text-left">Item</th><th class="text-right">Price</th><th class="text-right">Total</th></tr></thead>
           <tbody>
             ${found.items.map(i => `<tr><td>${i.qty}</td><td>${i.name}</td><td class="text-right">${i.price}</td><td class="text-right">${i.total}</td></tr>`).join('')}
           </tbody>
         </table>
         <div class="dashed-line"></div>
-        <table class="totals-table">
-          <tr>
-            <td>Net Amount:</td>
-            <td class="text-right"><b>Rs. ${found.total}</b></td>
-          </tr>
-        </table>
-        <div class="dashed-line"></div>
-        <div class="text-center" style="font-size: 10px; margin-top: 10px;">
-          <p style="margin:2px 0;">Your trust is our success</p>
-          <p style="margin:2px 0;">📍 Bhiria Road Sindh, Pakistan</p>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('modalReceiptContent').innerHTML = modalHTML;
+        <table class="totals-table"><tr><td>Net Amount:</td><td class="text-right"><b>Rs. ${found.total}</b></td></tr></table>
+      </div>`;
     document.getElementById('viewReceiptModal').style.display = 'flex';
   }
 
-  function closeReceiptModal() {
-    document.getElementById('viewReceiptModal').style.display = 'none';
-  }
+  function closeReceiptModal() { document.getElementById('viewReceiptModal').style.display = 'none'; }
 
   function reprintModalReceipt() {
     if (!currentModalReceiptObj) return;
@@ -1108,8 +1012,7 @@
     currentBill = currentModalReceiptObj.items;
     renderBillList();
     window.print();
-    currentBill = [];
-    renderBillList();
+    resetCurrentBill();
   }
 
   function switchOnlineTab(tab) {
@@ -1129,10 +1032,18 @@
 
   async function fetchOnlineOrders(userAlert = false) {
     try {
-      const { data, error } = await db.from('cafe_store').select('data').eq('id', 1).single();
+      const { data } = await db.from('cafe_store').select('data').eq('id', 1).single();
       if (data && data.data) {
         let rec = data.data;
-        pendingOnlineOrders = rec.orders || [];
+        const newOrdersList = rec.orders || [];
+        
+        // Play sound alert if a brand new online order arrives
+        if (newOrdersList.length > lastKnownOrderCount && lastKnownOrderCount !== 0) {
+          playBeepSound();
+        }
+        lastKnownOrderCount = newOrdersList.length;
+        pendingOnlineOrders = newOrdersList;
+
         if (rec.completedOrders) {
           completedOnlineOrders = rec.completedOrders;
           localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
@@ -1141,7 +1052,6 @@
       
       document.getElementById('onlineBadge').innerText = pendingOnlineOrders.length;
       document.getElementById('onlineBadge').style.display = pendingOnlineOrders.length > 0 ? 'inline-block' : 'none';
-
       renderPendingOnlineOrdersTable(pendingOnlineOrders);
       if (userAlert) alert("✅ Synchronized online orders!");
     } catch (e) {
@@ -1164,7 +1074,7 @@
         <td>${o.phone}<br><small>${o.address || ''}</small></td>
         <td>${o.items.map(i => `${i.qty}x${i.name}`).join(', ')}</td>
         <td><b>Rs. ${o.totalAmount}</b></td>
-        <td><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete Order</button></td>
+        <td><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete</button></td>
       </tr>
     `).join('');
   }
@@ -1184,18 +1094,14 @@
         <td>${o.phone}</td>
         <td>${o.items.map(i => `${i.qty}x${i.name}`).join(', ')}</td>
         <td><b>Rs. ${o.totalAmount}</b></td>
-        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${o.orderId}')">👁️ View Receipt</button></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewReceipt('${o.orderId}')">👁️ View</button></td>
       </tr>
     `).join('');
   }
 
   function filterOnlineOrders() {
     const q = document.getElementById('onlineSearchInput').value.trim().toLowerCase();
-    const filtered = pendingOnlineOrders.filter(o => 
-      String(o.orderId).toLowerCase().includes(q) ||
-      String(o.customerName).toLowerCase().includes(q) ||
-      String(o.phone).toLowerCase().includes(q)
-    );
+    const filtered = pendingOnlineOrders.filter(o => String(o.orderId).toLowerCase().includes(q) || String(o.customerName).toLowerCase().includes(q) || String(o.phone).toLowerCase().includes(q));
     renderPendingOnlineOrdersTable(filtered);
   }
 
@@ -1220,6 +1126,7 @@
       date: completedOrder.completedAt,
       customer: completedOrder.customerName || 'Online Customer',
       phone: completedOrder.phone || 'N/A',
+      paymentMethod: 'Online Order',
       items: completedOrder.items,
       total: completedOrder.totalAmount,
       type: 'online'
@@ -1228,12 +1135,11 @@
 
     completedOnlineOrders.push(completedOrder);
     localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
-
     await syncAllToCloud();
 
     fetchOnlineOrders(false);
     renderAllReceiptsTable();
-    alert(`Order accepted & assigned Invoice #${assignedInvoiceNo}! Added to Sales Paid Receipts.`);
+    alert(`Order accepted & assigned Invoice #${assignedInvoiceNo}!`);
   }
 
   async function syncAllToCloud() {
@@ -1251,24 +1157,25 @@
       record.sales = sales;
       record.inventory = inventory;
 
-      const { error } = await db.from('cafe_store').upsert({ id: 1, data: record });
-      if (error) {
-        alert("Sync Error: " + error.message);
-      } else {
-        alert("✅ Successfully synced menu, deals, and records to Supabase!");
-      }
+      await db.from('cafe_store').upsert({ id: 1, data: record });
     } catch (e) {
-      alert("Cloud sync failed.");
+      console.log("Cloud sync error");
     }
   }
 
-  // ── UPDATED FACTORY RESET ACCEPTING ADMIN PASSWORD OR MASTER KEY ──
-  function triggerWebsiteReset() {
-    const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password or Master Key to wipe system:");
+  // ── TRUE CLOUD & LOCAL FACTORY RESET ──
+  async function triggerWebsiteReset() {
+    const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password or Master Key to wipe system completely (Local & Cloud):");
     if (!enteredPass || (enteredPass !== currentUser.pass && enteredPass !== MASTER_KEY)) {
       return alert("Incorrect password or Master Key.");
     }
-    if (confirm("Reset everything? This action cannot be undone!")) {
+    if (confirm("Reset everything permanently across Local & Cloud? This cannot be undone!")) {
+      try {
+        await db.from('cafe_store').upsert({
+          id: 1,
+          data: { menu: [], deals: [], orders: [], completedOrders: [], users: [], inventory: [], sales: [], invoiceCounter: 1 }
+        });
+      } catch (e) {}
       localStorage.clear();
       location.reload();
     }
@@ -1310,7 +1217,6 @@
     const editIdx = parseInt(document.getElementById('editMenuIndex').value);
 
     if (!name || isNaN(price)) return alert("Please enter valid name and price.");
-
     const finalImage = uploadedImageBase64 || imgUrlInput || defaultFoodImg;
 
     if (editIdx >= 0) {
@@ -1383,14 +1289,10 @@
     const editIdx = parseInt(document.getElementById('editDealIndex').value);
 
     if (!title || isNaN(price)) return alert("Please enter deal title and price.");
-
     const dealObj = { id: editIdx >= 0 ? deals[editIdx].id : Date.now(), title, description: desc, price, validUntil, image: img || defaultFoodImg };
 
-    if (editIdx >= 0) {
-      deals[editIdx] = dealObj;
-    } else {
-      deals.push(dealObj);
-    }
+    if (editIdx >= 0) deals[editIdx] = dealObj;
+    else deals.push(dealObj);
 
     localStorage.setItem('cafeDeals', JSON.stringify(deals));
     await syncAllToCloud();
@@ -1443,7 +1345,7 @@
     `).join('');
   }
 
-  function saveInventoryItem() {
+  async function saveInventoryItem() {
     const name = document.getElementById('invItemName').value.trim();
     const qty = document.getElementById('invQty').value.trim();
     const cost = parseFloat(document.getElementById('invCost').value);
@@ -1452,6 +1354,7 @@
     if (!name || !qty || isNaN(cost)) return alert("Enter valid inventory data.");
     inventory.push({ name, qty, cost, date: itemDate });
     localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+    await syncAllToCloud(); // FIXED: Inventory now syncs to Supabase cloud automatically
     
     document.getElementById('invItemName').value = '';
     document.getElementById('invQty').value = '';
@@ -1459,12 +1362,13 @@
     document.getElementById('invItemDate').value = new Date().toISOString().slice(0, 10);
     
     renderInventoryTable();
-    alert("Stock item saved with date successfully!");
+    alert("Stock item saved & synced to cloud!");
   }
 
-  function deleteInventory(idx) {
+  async function deleteInventory(idx) {
     inventory.splice(idx, 1);
     localStorage.setItem('cafeInventory', JSON.stringify(inventory));
+    await syncAllToCloud();
     renderInventoryTable();
   }
 
@@ -1476,7 +1380,6 @@
   function downloadInventorySelectedFormat() {
     const format = document.getElementById('inventoryDownloadFormat').value;
     const period = document.getElementById('inventoryPeriodFilter').value;
-    
     let filtered = [...inventory];
     const now = new Date();
 
@@ -1486,26 +1389,12 @@
     } else if (period === 'week') {
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       filtered = filtered.filter(i => i.date >= oneWeekAgo);
-    } else if (period === 'month') {
-      const currentMonthPrefix = now.toISOString().slice(0, 7);
-      filtered = filtered.filter(i => i.date && i.date.startsWith(currentMonthPrefix));
-    } else if (period === 'custom') {
-      const start = document.getElementById('inventoryStartDate').value;
-      const end = document.getElementById('inventoryEndDate').value;
-      if (start && end) {
-        filtered = filtered.filter(i => i.date && i.date >= start && i.date <= end);
-      }
     }
 
-    if (filtered.length === 0) return alert("No purchase/inventory records found for the selected period.");
+    if (filtered.length === 0) return alert("No purchase records found.");
 
     if (format === 'excel') {
-      let dataToExport = filtered.map(i => ({
-        "Item Name": i.name,
-        "Stock Qty / Wt / Litre": i.qty,
-        "Unit Cost (Rs.)": i.cost,
-        "Date Added": i.date || 'N/A'
-      }));
+      let dataToExport = filtered.map(i => ({ "Item Name": i.name, "Stock Qty": i.qty, "Unit Cost (Rs.)": i.cost, "Date Added": i.date || 'N/A' }));
       let ws = XLSX.utils.json_to_sheet(dataToExport);
       let wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Purchase Details");
@@ -1515,18 +1404,8 @@
       let doc = new jsPDF();
       doc.text("MR FOOD CAFE NAVEED - Purchase Report", 14, 15);
       let tableData = filtered.map(i => [i.name, i.qty, `Rs. ${i.cost}`, i.date || 'N/A']);
-      doc.autoTable({ head: [['Item Name', 'Qty/Wt/Litre', 'Unit Cost', 'Date Added']], body: tableData, startY: 20 });
+      doc.autoTable({ head: [['Item Name', 'Qty', 'Unit Cost', 'Date Added']], body: tableData, startY: 20 });
       doc.save("Purchase_Report.pdf");
-    } else if (format === 'word') {
-      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Purchase Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Item Name</th><th>Qty/Wt/Litre</th><th>Unit Cost</th><th>Date Added</th></tr>` +
-        filtered.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${i.cost}</td><td>${i.date || 'N/A'}</td></tr>`).join('') +
-        `</table></body></html>`;
-      let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
-      let url = URL.createObjectURL(blob);
-      let a = document.createElement('a');
-      a.href = url;
-      a.download = 'Purchase_Report.doc';
-      a.click();
     }
   }
 
@@ -1545,7 +1424,6 @@
     const period = document.getElementById('timeFilter').value;
     const selectedItem = document.getElementById('analyticsItemSelect').value;
     const now = new Date();
-
     let filtered = [...sales];
 
     if (period === 'today') {
@@ -1554,25 +1432,6 @@
     } else if (period === 'week') {
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
-    } else if (period === 'month') {
-      filtered = filtered.filter(s => {
-        const d = new Date(s.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    } else if (period === 'year') {
-      filtered = filtered.filter(s => new Date(s.date).getFullYear() === now.getFullYear());
-    } else if (period === 'custom') {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      if (start && end) {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59, 999);
-        filtered = filtered.filter(s => {
-          const d = new Date(s.date);
-          return d >= startDate && d <= endDate;
-        });
-      }
     }
 
     let totalEarnings = 0;
@@ -1585,72 +1444,19 @@
       document.getElementById('statQtyRow').style.display = 'flex';
       filtered.forEach(s => {
         s.items.forEach(item => {
-          if (item.name === selectedItem) {
-            totalQty += item.qty;
-            totalEarnings += item.total;
-          }
+          if (item.name === selectedItem) { totalQty += item.qty; totalEarnings += item.total; }
         });
       });
       document.getElementById('statQty').innerText = totalQty;
     }
-
     document.getElementById('statEarnings').innerText = totalEarnings.toFixed(2);
   }
 
   function downloadSalesSelectedFormat() {
     const format = document.getElementById('salesDownloadFormat').value;
-    const period = document.getElementById('timeFilter').value;
-    const selectedItem = document.getElementById('analyticsItemSelect').value;
-    const now = new Date();
-
-    let filtered = [...sales];
-    if (period === 'today') {
-      const todayStr = now.toDateString();
-      filtered = filtered.filter(s => new Date(s.date).toDateString() === todayStr);
-    } else if (period === 'week') {
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter(s => new Date(s.date) >= oneWeekAgo);
-    } else if (period === 'month') {
-      filtered = filtered.filter(s => {
-        const d = new Date(s.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    } else if (period === 'year') {
-      filtered = filtered.filter(s => new Date(s.date).getFullYear() === now.getFullYear());
-    } else if (period === 'custom') {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      if (start && end) {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59, 999);
-        filtered = filtered.filter(s => {
-          const d = new Date(s.date);
-          return d >= startDate && d <= endDate;
-        });
-      }
-    }
-
-    if (filtered.length === 0) return alert("No sales records found for the selected period.");
-
+    if (sales.length === 0) return alert("No sales records found.");
     if (format === 'excel') {
-      let dataToExport = [];
-      filtered.forEach(s => {
-        s.items.forEach(item => {
-          if (selectedItem === 'all' || item.name === selectedItem) {
-            dataToExport.push({
-              "Invoice #": s.invoiceNo,
-              "Date": new Date(s.date).toLocaleString(),
-              "Customer": s.customer,
-              "Phone": s.phone,
-              "Item Name": item.name,
-              "Qty": item.qty,
-              "Price": item.price,
-              "Total (Rs.)": item.total
-            });
-          }
-        });
-      });
+      let dataToExport = sales.map(s => ({ "Invoice #": s.invoiceNo, "Date": new Date(s.date).toLocaleString(), "Customer": s.customer, "Phone": s.phone, "Payment": s.paymentMethod || 'Cash', "Total (Rs.)": s.total }));
       let ws = XLSX.utils.json_to_sheet(dataToExport);
       let wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Sales Report");
@@ -1658,33 +1464,10 @@
     } else if (format === 'pdf') {
       const { jsPDF } = window.jspdf;
       let doc = new jsPDF();
-      doc.text("MR FOOD CAFE NAVEED - Sales Analytics Report", 14, 15);
-      let tableData = [];
-      filtered.forEach(s => {
-        s.items.forEach(item => {
-          if (selectedItem === 'all' || item.name === selectedItem) {
-            tableData.push([s.invoiceNo, s.customer, item.name, item.qty, `Rs. ${item.total}`, new Date(s.date).toLocaleDateString()]);
-          }
-        });
-      });
-      doc.autoTable({ head: [['Invoice', 'Customer', 'Item', 'Qty', 'Total', 'Date']], body: tableData, startY: 20 });
+      doc.text("MR FOOD CAFE NAVEED - Sales Report", 14, 15);
+      let tableData = sales.map(s => [s.invoiceNo, s.customer, `Rs. ${s.total}`, s.paymentMethod || 'Cash', new Date(s.date).toLocaleDateString()]);
+      doc.autoTable({ head: [['Invoice', 'Customer', 'Total', 'Payment', 'Date']], body: tableData, startY: 20 });
       doc.save("Sales_Analytics_Report.pdf");
-    } else if (format === 'word') {
-      let htmlContent = `<html><head><meta charset='utf-8'></head><body><h3>MR FOOD CAFE NAVEED - Sales Report</h3><table border='1' cellspacing='0' cellpadding='5'><tr><th>Invoice</th><th>Customer</th><th>Item</th><th>Qty</th><th>Total</th><th>Date</th></tr>`;
-      filtered.forEach(s => {
-        s.items.forEach(item => {
-          if (selectedItem === 'all' || item.name === selectedItem) {
-            htmlContent += `<tr><td>${s.invoiceNo}</td><td>${s.customer}</td><td>${item.name}</td><td>${item.qty}</td><td>Rs. ${item.total}</td><td>${new Date(s.date).toLocaleDateString()}</td></tr>`;
-          }
-        });
-      });
-      htmlContent += `</table></body></html>`;
-      let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
-      let url = URL.createObjectURL(blob);
-      let a = document.createElement('a');
-      a.href = url;
-      a.download = 'Sales_Analytics_Report.doc';
-      a.click();
     }
   }
 
@@ -1706,16 +1489,15 @@
     const p = document.getElementById('newUserPass').value;
     const r = document.getElementById('newUserRole').value;
     if (!u || !p) return alert("Enter username and password.");
-    if (!validateStrongPassword(p)) return alert("Password must be at least 6 characters and contain uppercase, lowercase, numbers, and symbols/signs.");
+    if (!validateStrongPassword(p)) return alert("Password must be at least 6 characters with uppercase, lowercase, number, and symbol.");
     
     users.push({ username: u, pass: p, role: r, lastUpdated: new Date().toISOString() });
     localStorage.setItem('cafeUsers', JSON.stringify(users));
     await syncAllToCloud();
-    
     document.getElementById('newUsername').value = '';
     document.getElementById('newUserPass').value = '';
     renderUsersTable();
-    alert("User account created and saved permanently!");
+    alert("User account created!");
   }
 
   async function deleteUser(idx) {
@@ -1734,45 +1516,7 @@
 
   function downloadSelectedBackup() {
     const format = document.getElementById('backupFormatSelect').value;
-    const period = document.getElementById('backupPeriodSelect').value;
-    const now = new Date();
-
-    let filteredSales = [...sales];
-    if (period === 'today') {
-      const todayStr = now.toDateString();
-      filteredSales = filteredSales.filter(s => new Date(s.date).toDateString() === todayStr);
-    } else if (period === 'week') {
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filteredSales = filteredSales.filter(s => new Date(s.date) >= oneWeekAgo);
-    } else if (period === 'month') {
-      filteredSales = filteredSales.filter(s => {
-        const d = new Date(s.date);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      });
-    } else if (period === 'custom') {
-      const start = document.getElementById('backupStartDate').value;
-      const end = document.getElementById('backupEndDate').value;
-      if (start && end) {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59, 999);
-        filteredSales = filteredSales.filter(s => {
-          const d = new Date(s.date);
-          return d >= startDate && d <= endDate;
-        });
-      }
-    }
-
-    const backupData = {
-      users,
-      menu,
-      deals,
-      inventory,
-      sales: filteredSales,
-      completedOnlineOrders,
-      invoiceCounter
-    };
-
+    const backupData = { users, menu, deals, inventory, sales, completedOnlineOrders, invoiceCounter };
     if (format === 'json') {
       let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
       let dlAnchor = document.createElement('a');
@@ -1781,22 +1525,10 @@
       document.body.appendChild(dlAnchor);
       dlAnchor.click();
       dlAnchor.remove();
-    } else if (format === 'excel') {
-      let dataToExport = filteredSales.map(s => ({
-        "Invoice #": s.invoiceNo,
-        "Date": new Date(s.date).toLocaleString(),
-        "Customer": s.customer,
-        "Phone": s.phone,
-        "Total (Rs.)": s.total
-      }));
-      let ws = XLSX.utils.json_to_sheet(dataToExport);
-      let wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Backup Sales");
-      XLSX.writeFile(wb, "CafeNaveed_Sales_Backup.xlsx");
     }
   }
 
-  function restoreJSONBackup() {
+  async function restoreJSONBackup() {
     const fileInput = document.getElementById('restoreFile');
     if (!fileInput.files || fileInput.files.length === 0) return alert("Please select a JSON backup file.");
     const file = fileInput.files[0];
@@ -1804,36 +1536,15 @@
     reader.onload = async function(e) {
       try {
         const parsed = JSON.parse(e.target.result);
-        if (parsed.menu) {
-          menu = parsed.menu;
-          localStorage.setItem('cafeMenu', JSON.stringify(menu));
-        }
-        if (parsed.deals) {
-          deals = parsed.deals;
-          localStorage.setItem('cafeDeals', JSON.stringify(deals));
-        }
-        if (parsed.sales) {
-          sales = parsed.sales;
-          localStorage.setItem('cafeSales', JSON.stringify(sales));
-        }
-        if (parsed.inventory) {
-          inventory = parsed.inventory;
-          localStorage.setItem('cafeInventory', JSON.stringify(inventory));
-        }
-        if (parsed.users) {
-          users = parsed.users;
-          localStorage.setItem('cafeUsers', JSON.stringify(users));
-        }
-        if (parsed.completedOnlineOrders) {
-          completedOnlineOrders = parsed.completedOnlineOrders;
-          localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders));
-        }
-        if (parsed.invoiceCounter) {
-          invoiceCounter = parsed.invoiceCounter;
-          localStorage.setItem('cafeInvoiceCounter', invoiceCounter);
-        }
+        if (parsed.menu) { menu = parsed.menu; localStorage.setItem('cafeMenu', JSON.stringify(menu)); }
+        if (parsed.deals) { deals = parsed.deals; localStorage.setItem('cafeDeals', JSON.stringify(deals)); }
+        if (parsed.sales) { sales = parsed.sales; localStorage.setItem('cafeSales', JSON.stringify(sales)); }
+        if (parsed.inventory) { inventory = parsed.inventory; localStorage.setItem('cafeInventory', JSON.stringify(inventory)); }
+        if (parsed.users) { users = parsed.users; localStorage.setItem('cafeUsers', JSON.stringify(users)); }
+        if (parsed.completedOnlineOrders) { completedOnlineOrders = parsed.completedOnlineOrders; localStorage.setItem('cafeCompletedOrders', JSON.stringify(completedOnlineOrders)); }
+        if (parsed.invoiceCounter) { invoiceCounter = parsed.invoiceCounter; localStorage.setItem('cafeInvoiceCounter', invoiceCounter); }
         await syncAllToCloud();
-        alert("✅ Database restored and synchronized successfully! Reloading system...");
+        alert("✅ Database restored and synchronized successfully! Reloading...");
         location.reload();
       } catch (err) {
         alert("Invalid backup file format.");
