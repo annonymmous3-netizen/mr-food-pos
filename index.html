@@ -154,15 +154,15 @@
   <!-- Authentication Screen -->
   <div id="authContainer" class="view-screen active">
   <div id="licensePanel" class="auth-card" style="display:none; max-width:520px; margin:0 auto 15px; border:2px solid var(--sapphire);">
-    <div class="auth-header"><h2>Website Activation</h2><p>آپ کی ویب سائٹ کی ماہانہ activation status</p></div>
+    <div class="auth-header"><h2>Website Activation</h2><p>Monthly website activation status</p></div>
     <div id="licenseStatusText" class="alert-box alert-warning" style="display:block;"></div>
     <label>Activation Code:</label>
     <input type="text" id="licenseCodeInput" placeholder="MFC-XXXX-XXXX-XXXX">
     <button class="btn btn-success" onclick="activateCurrentSite()">Activate for Next Month</button>
-    <div style="margin-top:8px;font-size:11px;color:#666;">Activation code اپنے developer / NOVA WEB DEVELOPER سے حاصل کریں۔</div>
+    <div style="margin-top:8px;font-size:11px;color:#666;">Activation code   developer / NOVA WEB DEVELOPER      </div>
   </div>
     <div id="loginCard" class="auth-card">
-      <div class="arabic-title">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
+      <div class="arabic-title">     </div>
       <div class="auth-header">
         <h2>MR FOOD CAFE NAVEED</h2>
         <p>POS & ERP System Login</p>
@@ -201,9 +201,7 @@
         <p>Master Key Authorization Required</p>
       </div>
       <div id="forgotAlert" class="alert-box alert-danger"></div>
-      <label>Select User to Reset:</label>
-      <select id="forgotUserSelect"></select>
-      <label>Master Security Password Key:</label>
+            <label>Master Security Password Key:</label>
       <input type="password" id="forgotMasterKey" placeholder="Enter Master Key">
       <label>New Password:</label>
       <input type="password" id="forgotNewPass" placeholder="Enter New Strong Password">
@@ -216,7 +214,7 @@
   <div id="appContainer" class="view-screen">
     <div class="top-bar">
       <div class="brand">MR FOOD CAFE NAVEED - ERP Dashboard</div>
-      <div class="arabic-title" style="color: #fff; margin:0; font-size:16px;">وَاللَّهُ خَيْرُ الرَّازِقِينَ</div>
+      <div class="arabic-title" style="color: #fff; margin:0; font-size:16px;">     </div>
       <div class="user-info">
         <span id="networkStatus" class="network-status">⏳ Checking connection...</span>
         <button class="btn btn-success btn-sm" onclick="syncAllToCloud(true)">☁️ Force Sync to Customer Site</button>
@@ -240,6 +238,7 @@
           <li class="nav-item admin-only" id="nav-inventory" onclick="switchPanel('inventoryPanel', this)"><span>📦 Inventory & Stock</span></li>
           <li class="nav-item admin-only" id="nav-users" onclick="switchPanel('usersPanel', this)"><span>👥 User Management</span></li>
           <li class="nav-item admin-only" id="nav-backup" onclick="switchPanel('backupPanel', this)"><span>💾 Backup & Restore</span></li>
+          <li class="nav-item" id="nav-subscription" onclick="switchPanel('subscriptionPanel', this)"><span>💳 Subscription</span></li>
           <li class="nav-item" id="nav-settings" onclick="switchPanel('settingsPanel', this)"><span>⚙️ Account & Settings</span></li>
         </ul>
       </div>
@@ -678,6 +677,20 @@
         </div>
 
         <!-- Account & Settings Panel -->
+        <div id="subscriptionPanel" class="panel-section">
+          <div class="panel-title">💳 Website Subscription & Activation</div>
+          <div class="stat-card" style="margin-bottom:15px;">
+            <h4>Current Website License</h4>
+            <div id="posSubscriptionStatus" style="font-size:15px;font-weight:800;margin:7px 0;">Checking...</div>
+            <div id="posSubscriptionDetails" style="font-size:13px;color:#60798c;line-height:1.8;"></div>
+          </div>
+          <div class="analytics-box">
+            <label>Monthly Activation Code:</label><input id="posSubscriptionCode" placeholder="NOVA-XXXX-XXXX-XXXX">
+            <button class="btn btn-success" onclick="activateCurrentSiteFromSubscription()">Activate / Renew</button>
+            <div style="font-size:11px;color:#60798c;">Get a new activation code from NOVA WEB DEVELOPER.</div>
+          </div>
+        </div>
+
         <div id="settingsPanel" class="panel-section">
           <div class="panel-title">Account & Preferences</div>
           <div style="max-width: 400px;">
@@ -718,6 +731,9 @@
   const SUPABASE_URL = 'https://mavjzmuathawcvuxaguo.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdmp6bXVhdGhhd2N2dXhhZ3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MjU4NDAsImV4cCI6MjEwOTMwMTg0MH0.M4qy0QgGgv04mP4SW-NwRNwdY5BrGV04hUDpUmg6uj0';
 
+  const LICENSE_SUPABASE_URL = 'https://ixmiwgolmklrqenwflub.supabase.co';
+  const LICENSE_SUPABASE_ANON_KEY = 'sb_publishable_30FTYbUsJSxENE6zXFXatw_ySKKcWzB';
+
   // POS is ONLINE-ONLY: authentication and cloud synchronization require
   // a live Supabase connection. LocalStorage is retained only as a cache;
   // it is never used as an offline login source.
@@ -725,8 +741,12 @@
   const db = supabaseLib && typeof supabaseLib.createClient === 'function'
     ? supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
+  const licenseDb = supabaseLib && typeof supabaseLib.createClient === 'function'
+    ? supabaseLib.createClient(LICENSE_SUPABASE_URL, LICENSE_SUPABASE_ANON_KEY)
+    : null;
 
-  const MASTER_KEY = 'NaveedCafe2026!';
+  const POS_SITE_URL = window.location.origin.replace(/\/$/,'');
+  const POS_USERNAME = 'ADMIN';
   const defaultFoodImg = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=150';
 
   let currentUser = null;
@@ -758,7 +778,7 @@
 
   async function checkLicenseStatus(showPanel=true) {
     try {
-      const { data, error } = await db.rpc('check_site_license', { p_site_url: LICENSE_SITE_URL });
+      const { data, error } = await licenseDb.rpc('check_site_license', { p_site_url: LICENSE_SITE_URL });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
       licenseState = row || { status:'INACTIVE', active_until:null, days_left:0 };
@@ -768,37 +788,44 @@
       if (licenseState.status === 'ACTIVE') {
         if (licenseState.days_left <= 5) {
           panel.style.display='block';
-          text.innerText = `⚠️ آپ کی activation ${licenseState.active_until} کو ختم ہو رہی ہے۔ صرف ${licenseState.days_left} دن باقی ہیں۔ آخری تاریخ ${licenseState.active_until} ہے۔ نیا activation code اپنے developer سے حاصل کریں۔`;
+          text.innerText = `⚠️ Your activation ${licenseState.active_until} expires on. Only ${licenseState.days_left} days remain. Expiry date ${licenseState.active_until}   Get a new activation code from your developer.`;
         } else panel.style.display='none';
+        renderPOSSubscription();
         return true;
       }
       panel.style.display='block';
       text.innerText = licenseState.status === 'EXPIRED'
-        ? `🔴 آپ کی website activation ${licenseState.active_until} کو expire ہو چکی ہے۔ براہِ کرم نیا activation code لے کر یہاں درج کریں۔`
-        : '🟠 یہ website ابھی activate نہیں ہوئی۔ براہِ کرم activation code درج کریں۔';
-      showLicensePopup(licenseState.status === 'EXPIRED' ? `Activation ${licenseState.active_until} کو expire ہو چکی ہے۔ نیا activation code درج کریں۔` : 'یہ POS ابھی activate نہیں ہے۔ Activation code درج کریں۔', true);
+        ? `🔴     website activation ${licenseState.active_until} has expired. Please obtain a new activation code and enter it here.`
+        : '🟠 This website is not activated. e         activation code    ';
+      showLicensePopup(licenseState.status === 'EXPIRED' ? `Activation ${licenseState.active_until} has expired.   activation code    ` : 'This POS is not activated. Enter an activation code.', true);
       return false;
     } catch(e) {
       licenseState={status:'UNKNOWN',active_until:null,days_left:0};
       const panel=document.getElementById('licensePanel'),text=document.getElementById('licenseStatusText');
-      if(panel&&text){panel.style.display='block';text.innerText='⚠️ Activation service سے رابطہ نہیں ہو سکا۔ Internet چیک کریں۔';}
+      if(panel&&text){panel.style.display='block';text.innerText='⚠️ Activation service           Internet    ';}
       return false;
     }
   }
 
   async function activateCurrentSite(){
     const code=document.getElementById('licenseCodeInput').value.trim();
-    if(!code) return alert('Activation code درج کریں۔');
+    if(!code) return alert('Enter an activation code.');
     try{
-      const {data,error}=await db.rpc('activate_site_license',{p_site_url:LICENSE_SITE_URL,p_code:code});
+      const {data,error}=await licenseDb.rpc('activate_site_license',{p_site_url:LICENSE_SITE_URL,p_code:code});
       if(error) throw error;
       const row=Array.isArray(data)?data[0]:data;
-      if(!row || !row.success) return alert(row?.message || 'Activation code درست نہیں ہے۔');
-      alert(`✅ Website activate ہو گئی۔ Activation ${row.active_until} تک فعال ہے۔ اگلی renewal کے لیے نیا code حاصل کریں۔`);
+      if(!row || !row.success) return alert(row?.message || 'Activation code      ');
+      alert(`✅ Website activated. Activation ${row.active_until} . Get a new code for the next renewal.`);
       document.getElementById('licenseCodeInput').value='';
       await checkLicenseStatus(true);
     }catch(e){ alert('Activation service error: '+(e.message||e)); }
   }
+  function renderPOSSubscription(){
+    const s=document.getElementById('posSubscriptionStatus'),d=document.getElementById('posSubscriptionDetails');if(!s||!d)return;
+    if(licenseState.status==='ACTIVE'){s.innerHTML=licenseState.days_left<=5?'🟠 ACTIVE — RENEWAL SOON':'🟢 ACTIVE';d.innerHTML=`Expiry Date: <b>${licenseState.active_until}</b><br>Remaining Days: <b>${licenseState.days_left}</b>${licenseState.days_left<=5?'<br>⚠️ Developer     activation code    ':''}`;}else if(licenseState.status==='EXPIRED'){s.innerHTML='🔴 EXPIRED';d.innerHTML=`Expired On: <b>${licenseState.active_until||'—'}</b><br>Get a new activation code from NOVA WEB DEVELOPER.`;}else{s.innerHTML='🟠 NOT ACTIVATED';d.innerHTML='Website activation required.';}
+  }
+  async function activateCurrentSiteFromSubscription(){const code=document.getElementById('posSubscriptionCode').value.trim();if(!code)return alert('Enter an activation code.');document.getElementById('licenseCodeInput').value=code;await activateCurrentSite();renderPOSSubscription();}
+
   let currentBill = [];
   let invoiceCounter = parseInt(localStorage.getItem('cafeInvoiceCounter') || '1');
 
@@ -946,7 +973,7 @@
   }
 
   function validateStrongPassword(pass) {
-    return /[A-Z]/.test(pass) && /[a-z]/.test(pass) && /\d/.test(pass) && /[^\w\s]/.test(pass) && pass.length >= 6;
+    return /[A-Z]/.test(pass) && /[a-z]/.test(pass) && /\d/.test(pass) && /[^\w\s]/.test(pass) && pass.length >= 10;
   }
 
   function playBeepSound() {
@@ -1040,8 +1067,6 @@
 
   function showForgotModal() {
     document.getElementById('loginCard').style.display = 'none';
-    const select = document.getElementById('forgotUserSelect');
-    select.innerHTML = users.map(us => `<option value="${us.username}">${us.username} (${us.role})</option>`).join('');
     document.getElementById('forgotCard').style.display = 'block';
   }
 
@@ -1075,16 +1100,23 @@
 
     const licensed = await checkLicenseStatus(true);
     if (!licensed) {
-      alertBox.innerText = '🔒 Website activation required. پہلے activation code درج کریں۔';
+      alertBox.innerText = '🔒 Website activation required. Enter an activation code first.';
       alertBox.style.display = 'block';
       return;
     }
 
-    const found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
-    if (!found) {
-      alertBox.innerText = 'Invalid username or password.';
-      alertBox.style.display = 'block';
-      return;
+    let found = null;
+    if (u.toUpperCase() === POS_USERNAME) {
+      const {data:authData,error:authError}=await db.rpc('pos_admin_login',{p_site_url:POS_SITE_URL,p_username:POS_USERNAME,p_password:p});
+      if(authError || !authData || authData.success!==true){
+        alertBox.innerText = authError?.message || authData?.message || 'Invalid username or password.';
+        alertBox.style.display = 'block';
+        return;
+      }
+      found = { username:POS_USERNAME, role:'Admin', isFirstTime:!!authData.first_time, secureAuth:true };
+    } else {
+      found = users.find(us => us.username.toUpperCase() === u.toUpperCase() && us.pass === p);
+      if (!found) { alertBox.innerText = 'Invalid username or password.'; alertBox.style.display = 'block'; return; }
     }
 
     if (found.isFirstTime) {
@@ -1114,60 +1146,40 @@
     const confirmP = document.getElementById('setupConfirmPass').value;
     const alertBox = document.getElementById('firstTimeAlert');
     alertBox.style.display = 'none';
-
-    if (!validateStrongPassword(newP)) { alertBox.innerText = "Password must be at least 6 characters with uppercase, lowercase, number, and symbol."; alertBox.style.display = 'block'; return; }
-    if (newP !== confirmP) { alertBox.innerText = "Passwords do not match."; alertBox.style.display = 'block'; return; }
-
-    currentUser.pass = newP;
-    delete currentUser.isFirstTime;
-    currentUser.lastUpdated = new Date().toISOString();
-
-    localStorage.setItem('cafeUsers', JSON.stringify(users));
-    await syncAllToCloud();
-    alert("New password created and saved permanently!");
-
+    if (!validateStrongPassword(newP) || newP.length < 10) { alertBox.innerText = 'Password is not strong enough. Use at least 10 characters with uppercase, lowercase, number, and symbol.'; alertBox.style.display = 'block'; return; }
+    if (newP !== confirmP) { alertBox.innerText = 'Passwords do not match.'; alertBox.style.display = 'block'; return; }
+    const {data,error}=await db.rpc('pos_admin_set_password',{p_site_url:POS_SITE_URL,p_username:POS_USERNAME,p_new_password:newP});
+    if(error || !data?.success){ alertBox.innerText=error?.message||data?.message||'Password update failed.'; alertBox.style.display='block'; return; }
+    currentUser = {username:POS_USERNAME,role:'Admin',secureAuth:true};
     document.getElementById('authContainer').classList.remove('active');
     document.getElementById('appContainer').classList.add('active');
-    document.getElementById('userRoleBadge').innerText = `User: ${currentUser.username} (${currentUser.role})`;
+    document.getElementById('userRoleBadge').innerText = `Role: Admin`;
+    alert('New Admin Password saved. Use this password on every device.');
     postLoginSetup();
   }
 
   async function processMasterReset() {
-    const uname = document.getElementById('forgotUserSelect').value;
-    const mKey = document.getElementById('forgotMasterKey').value;
+    const mKey = document.getElementById('forgotMasterKey').value.trim();
     const newPass = document.getElementById('forgotNewPass').value;
     const alertBox = document.getElementById('forgotAlert');
     alertBox.style.display = 'none';
-
-    if (mKey !== MASTER_KEY) { alertBox.innerText = "Invalid Master Security Key."; alertBox.style.display = 'block'; return; }
-    if (!validateStrongPassword(newPass)) { alertBox.innerText = "Password must be at least 6 characters with uppercase, lowercase, number, and symbol."; alertBox.style.display = 'block'; return; }
-
-    let userObj = users.find(us => us.username === uname);
-    if (userObj) {
-      userObj.pass = newPass;
-      delete userObj.isFirstTime;
-      userObj.lastUpdated = new Date().toISOString();
-      localStorage.setItem('cafeUsers', JSON.stringify(users));
-      await syncAllToCloud();
-      alert("Password successfully reset!");
-      showLoginCard();
-    }
+    if (!mKey) { alertBox.innerText = 'Enter the Master Key.'; alertBox.style.display='block'; return; }
+    if (!validateStrongPassword(newPass) || newPass.length < 10) { alertBox.innerText = 'New password is not strong enough.'; alertBox.style.display='block'; return; }
+    const {data,error}=await db.rpc('pos_admin_reset_password_with_key',{p_site_url:POS_SITE_URL,p_username:POS_USERNAME,p_master_key:mKey,p_new_password:newPass});
+    if(error || !data?.success){ alertBox.innerText=error?.message||data?.message||'Invalid Master Key.'; alertBox.style.display='block'; return; }
+    alert('✅ Password reset successfully. Login with the new password.');
+    showLoginCard();
   }
 
   async function changeMyPassword() {
     const cur = document.getElementById('currentPassInput').value;
     const nxt = document.getElementById('newPassInput').value;
-    if (cur !== currentUser.pass) return alert("Current password is incorrect.");
-    if (!validateStrongPassword(nxt)) return alert("Password must be at least 6 characters with uppercase, lowercase, number, and symbol.");
-    
-    currentUser.pass = nxt;
-    delete currentUser.isFirstTime;
-    currentUser.lastUpdated = new Date().toISOString();
-    localStorage.setItem('cafeUsers', JSON.stringify(users));
-    await syncAllToCloud();
-    alert("Password updated successfully!");
-    document.getElementById('currentPassInput').value = '';
-    document.getElementById('newPassInput').value = '';
+    if (!currentUser?.secureAuth) return alert('This account does not use secure admin login.');
+    if (!validateStrongPassword(nxt) || nxt.length < 10) return alert('New password is not strong enough.');
+    const {data,error}=await db.rpc('pos_admin_change_password',{p_site_url:POS_SITE_URL,p_username:POS_USERNAME,p_current_password:cur,p_new_password:nxt});
+    if(error || !data?.success) return alert(error?.message||data?.message||'Current password incorrect.');
+    alert('Password updated successfully!');
+    document.getElementById('currentPassInput').value=''; document.getElementById('newPassInput').value='';
   }
 
   function logout() {
@@ -1212,6 +1224,7 @@
     elem.classList.add('active');
     if (panelId === 'receiptsPanel') renderAllReceiptsTable();
     if (panelId === 'dashboardPanel') renderDashboardStats();
+    if (panelId === 'subscriptionPanel') { checkLicenseStatus(true); renderPOSSubscription(); }
   }
 
   function renderDashboardStats() {
@@ -1291,16 +1304,14 @@
     if (!navigator.onLine || !db) return alert("🔴 POS is online-only. Please connect to the internet before creating a bill.");
     manualBillProcessing = true;
     await fetchOnlineOrders(false);
-    const currentInvNum = String(invoiceCounter).padStart(6, '0');
+    const {data:reserved,error:reserveError}=await db.rpc('reserve_cafe_invoice',{p_min_next:Number(invoiceCounter)||1});
+    if(reserveError || reserved==null){manualBillProcessing=false;return alert('⚠️ Invoice sequence service unavailable. Bill      ');}
+    const currentInvNum = String(Number(reserved)).padStart(6, '0');
+    invoiceCounter=Math.max(Number(invoiceCounter)||1,Number(reserved)+1);
     const net = currentBill.reduce((sum, i) => sum + i.total, 0);
     const paymentMethod = document.getElementById('paymentMethodSelect').value;
     
-    if (sales.some(s => String(s.invoiceNo) === currentInvNum)) {
-      invoiceCounter++;
-      localStorage.setItem('cafeInvoiceCounter', String(invoiceCounter));
-      manualBillProcessing = false;
-      return processAndPrint();
-    }
+    if (sales.some(s => String(s.invoiceNo) === currentInvNum)) { manualBillProcessing=false; return alert('⚠️ Duplicate invoice prevented. Please try the bill again.'); }
     sales.push({
       invoiceNo: currentInvNum,
       date: new Date().toISOString(),
@@ -1464,22 +1475,13 @@
       const sorted = [...mergedPending].sort((a,b) => orderTimestampMs(a) - orderTimestampMs(b));
       let assignedAny = false;
       for (const order of sorted) {
-        if (!order.invoiceAssigned && !order.orderId) {
-          order.orderId = String(invoiceCounter).padStart(6, '0');
+        if (!order.invoiceAssigned) {
+          const {data:reserved,error:reserveError}=await db.rpc('reserve_cafe_invoice',{p_min_next:Number(invoiceCounter)||1});
+          if(reserveError || reserved==null) throw reserveError || new Error('Invoice sequence unavailable');
+          order.orderId = String(Number(reserved)).padStart(6, '0');
           order.invoiceAssigned = true;
           order.invoiceAssignedAt = new Date().toISOString();
-          invoiceCounter++;
-          assignedAny = true;
-        } else if (!order.invoiceAssigned && order.orderId) {
-          // Legacy random order numbers are replaced once, then remain fixed forever.
-          const legacy = numericInvoiceValue(order.orderId);
-          if (legacy > 0 && legacy < 100000) {
-            order.sourceOrderId = order.sourceOrderId || `legacy-${order.orderId}-${order.phone || ''}-${order.timestamp || ''}`;
-          }
-          order.orderId = String(invoiceCounter).padStart(6, '0');
-          order.invoiceAssigned = true;
-          order.invoiceAssignedAt = new Date().toISOString();
-          invoiceCounter++;
+          invoiceCounter=Math.max(Number(invoiceCounter)||1,Number(reserved)+1);
           assignedAny = true;
         }
       }
@@ -1539,7 +1541,7 @@
     const tableOrders=pendingOnlineOrders.filter(o=>!!o.tableNumber).sort((a,b)=>orderTimestampMs(a)-orderTimestampMs(b));
     const counts={}; for(let n=1;n<=12;n++) counts[n]=tableOrders.filter(o=>Number(o.tableNumber)===n).length;
     grid.innerHTML=Array.from({length:12},(_,i)=>{const n=i+1,c=counts[n];const latest=tableOrders.find(o=>Number(o.tableNumber)===n);return `<div class="table-card ${c?'has-order':'empty'}" onclick="focusTableOrder(${n})"><div class="tn">🍽️ Table ${n}</div><div class="tc">${c?`${c} pending order${c>1?'s':''}`:'No pending order'}</div><div class="ta">${latest?`Invoice #${latest.orderId} • Rs. ${latest.totalAmount}`:'✓ Available'}</div></div>`}).join('');
-    feed.innerHTML=tableOrders.length?tableOrders.slice().reverse().map(o=>`<div class="live-order-card table-order"><div class="live-order-head"><div><span class="source-badge source-table">TABLE ${o.tableNumber}</span> <b>Invoice #${o.orderId}</b></div><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete</button></div><div style="margin-top:7px"><b>${o.customerName}</b> • ${o.phone}</div><div style="font-size:12px;color:#60798c;margin-top:4px">${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')} • <b>Rs. ${o.totalAmount}</b></div></div>`).join(''):'<div class="live-order-card"><b>تمام 12 tables اس وقت clear ہیں۔</b><div style="font-size:12px;color:#60798c;margin-top:4px">QR سے نیا order آتے ہی یہاں notification اور Table number نظر آئے گا۔</div></div>';
+    feed.innerHTML=tableOrders.length?tableOrders.slice().reverse().map(o=>`<div class="live-order-card table-order"><div class="live-order-head"><div><span class="source-badge source-table">TABLE ${o.tableNumber}</span> <b>Invoice #${o.orderId}</b></div><button class="btn btn-success btn-sm" onclick="markOrderCompleted('${o.orderId}')">✔️ Complete</button></div><div style="margin-top:7px"><b>${o.customerName}</b> • ${o.phone}</div><div style="font-size:12px;color:#60798c;margin-top:4px">${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')} • <b>Rs. ${o.totalAmount}</b></div></div>`).join(''):'<div class="live-order-card"><b>All 12 tables are currently clear.</b><div style="font-size:12px;color:#60798c;margin-top:4px">A new QR order will appear here with its table number.</div></div>';
     renderDashboardStats();
   }
 
@@ -1706,7 +1708,7 @@
 
   async function triggerWebsiteReset() {
     const enteredPass = prompt("⚠️ FACTORY RESET WARNING:\nEnter Admin Password or Master Key to wipe system completely (Local & Cloud):");
-    if (!enteredPass || (enteredPass !== currentUser.pass && enteredPass !== MASTER_KEY)) {
+    if (!enteredPass) {
       return alert("Incorrect password or Master Key.");
     }
     if (confirm("Reset everything permanently across Local & Cloud? This cannot be undone!")) {
