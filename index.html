@@ -149,17 +149,17 @@
   </style>
 </head>
 <body>
-  <div id="licensePopup"><div class="license-popup-card" id="licensePopupCard"><div class="license-popup-icon">🔔</div><div style="flex:1"><div class="license-popup-title">Activation Notification</div><div class="license-popup-text" id="licensePopupText"></div></div><button class="license-popup-close" onclick="closeLicensePopup()">✕</button></div></div>
+  <div id="licensePopup"><div class="license-popup-card" id="licensePopupCard"><div class="license-popup-icon">🔔</div><div style="flex:1"><div class="license-popup-title">POS Subscription Notification</div><div class="license-popup-text" id="licensePopupText"></div></div><button class="license-popup-close" onclick="closeLicensePopup()">✕</button></div></div>
 
   <!-- Authentication Screen -->
   <div id="authContainer" class="view-screen active">
   <div id="licensePanel" class="auth-card" style="display:none; max-width:520px; margin:0 auto 15px; border:2px solid var(--sapphire);">
-    <div class="auth-header"><h2>Website Activation</h2><p>Monthly website activation status</p></div>
+    <div class="auth-header"><h2>POS Activation</h2><p>Monthly POS subscription status</p></div>
     <div id="licenseStatusText" class="alert-box alert-warning" style="display:block;"></div>
     <label>Activation Code:</label>
     <input type="text" id="licenseCodeInput" placeholder="MFC-XXXX-XXXX-XXXX">
     <button class="btn btn-success" onclick="activateCurrentSite()">Activate for Next Month</button>
-    <div style="margin-top:8px;font-size:11px;color:#666;">Activation code   developer / NOVA WEB DEVELOPER      </div>
+    <div style="margin-top:8px;font-size:11px;color:#666;">Activation codes are issued by NOBLE FUTURE DEVELOPER. The POS owner enters the code here to renew this POS.</div>
   </div>
     <div id="loginCard" class="auth-card">
       <div class="arabic-title">     </div>
@@ -678,16 +678,18 @@
 
         <!-- Account & Settings Panel -->
         <div id="subscriptionPanel" class="panel-section">
-          <div class="panel-title">💳 Website Subscription & Activation</div>
+          <div class="panel-title">💳 Subscription & Activation <span class="live-chip"><span class="live-dot"></span> OWNER LICENSE</span></div>
           <div class="stat-card" style="margin-bottom:15px;">
-            <h4>Current Website License</h4>
+            <h4>MR FOOD CAFE NAVEED POS License</h4>
             <div id="posSubscriptionStatus" style="font-size:15px;font-weight:800;margin:7px 0;">Checking...</div>
             <div id="posSubscriptionDetails" style="font-size:13px;color:#60798c;line-height:1.8;"></div>
           </div>
           <div class="analytics-box">
-            <label>Monthly Activation Code:</label><input id="posSubscriptionCode" placeholder="NOVA-XXXX-XXXX-XXXX">
-            <button class="btn btn-success" onclick="activateCurrentSiteFromSubscription()">Activate / Renew</button>
-            <div style="font-size:11px;color:#60798c;">Get a new activation code from NOVA WEB DEVELOPER.</div>
+            <label>Monthly Activation Code</label>
+            <input id="posSubscriptionCode" placeholder="Enter activation code">
+            <button class="btn btn-success" onclick="activateCurrentSiteFromSubscription()">🔑 Activate / Renew POS</button>
+            <div style="font-size:11px;color:#60798c;margin-top:7px;">The POS owner renews this subscription. Customer browsing does not require an activation code.</div>
+            <div style="font-size:11px;color:#60798c;margin-top:4px;">Activation codes are issued by NOBLE FUTURE DEVELOPER and are valid only for this registered POS URL.</div>
           </div>
         </div>
 
@@ -788,16 +790,16 @@
       if (licenseState.status === 'ACTIVE') {
         if (licenseState.days_left <= 5) {
           panel.style.display='block';
-          text.innerText = `⚠️ Your activation ${licenseState.active_until} expires on. Only ${licenseState.days_left} days remain. Expiry date ${licenseState.active_until}   Get a new activation code from your developer.`;
+          text.innerText = `⚠️ Renewal reminder: this POS license expires on ${licenseState.active_until}. Only ${licenseState.days_left} day(s) remain. Please obtain your next activation code from NOBLE FUTURE DEVELOPER.`;
         } else panel.style.display='none';
         renderPOSSubscription();
         return true;
       }
       panel.style.display='block';
       text.innerText = licenseState.status === 'EXPIRED'
-        ? `🔴     website activation ${licenseState.active_until} has expired. Please obtain a new activation code and enter it here.`
-        : '🟠 This website is not activated. e         activation code    ';
-      showLicensePopup(licenseState.status === 'EXPIRED' ? `Activation ${licenseState.active_until} has expired.   activation code    ` : 'This POS is not activated. Enter an activation code.', true);
+        ? `🔴 POS subscription expired on ${licenseState.active_until}. Enter a new activation code to restore POS access.`
+        : '🟠 This POS is not activated. Enter the activation code supplied by NOBLE FUTURE DEVELOPER.';
+      showLicensePopup(licenseState.status === 'EXPIRED' ? `POS subscription expired on ${licenseState.active_until}. Enter a new activation code to restore access.` : 'This POS is not activated. Enter the activation code supplied by NOBLE FUTURE DEVELOPER.', true);
       return false;
     } catch(e) {
       licenseState={status:'UNKNOWN',active_until:null,days_left:0};
@@ -822,7 +824,7 @@
   }
   function renderPOSSubscription(){
     const s=document.getElementById('posSubscriptionStatus'),d=document.getElementById('posSubscriptionDetails');if(!s||!d)return;
-    if(licenseState.status==='ACTIVE'){s.innerHTML=licenseState.days_left<=5?'🟠 ACTIVE — RENEWAL SOON':'🟢 ACTIVE';d.innerHTML=`Expiry Date: <b>${licenseState.active_until}</b><br>Remaining Days: <b>${licenseState.days_left}</b>${licenseState.days_left<=5?'<br>⚠️ Developer     activation code    ':''}`;}else if(licenseState.status==='EXPIRED'){s.innerHTML='🔴 EXPIRED';d.innerHTML=`Expired On: <b>${licenseState.active_until||'—'}</b><br>Get a new activation code from NOVA WEB DEVELOPER.`;}else{s.innerHTML='🟠 NOT ACTIVATED';d.innerHTML='Website activation required.';}
+    if(licenseState.status==='ACTIVE'){s.innerHTML=licenseState.days_left<=5?'🟠 ACTIVE — RENEWAL SOON':'🟢 ACTIVE';d.innerHTML=`Expiry Date: <b>${licenseState.active_until}</b><br>Remaining Days: <b>${licenseState.days_left}</b>${licenseState.days_left<=5?'<br>⚠️ Renewal due soon — obtain the next activation code from NOBLE FUTURE DEVELOPER.':''}`;}else if(licenseState.status==='EXPIRED'){s.innerHTML='🔴 EXPIRED';d.innerHTML=`Expired On: <b>${licenseState.active_until||'—'}</b><br>Get a new activation code from NOBLE FUTURE DEVELOPER.`;}else{s.innerHTML='🟠 NOT ACTIVATED';d.innerHTML='POS activation is required before login.';}
   }
   async function activateCurrentSiteFromSubscription(){const code=document.getElementById('posSubscriptionCode').value.trim();if(!code)return alert('Enter an activation code.');document.getElementById('licenseCodeInput').value=code;await activateCurrentSite();renderPOSSubscription();}
 
@@ -1100,7 +1102,7 @@
 
     const licensed = await checkLicenseStatus(true);
     if (!licensed) {
-      alertBox.innerText = '🔒 Website activation required. Enter an activation code first.';
+      alertBox.innerText = '🔒 POS activation is required before login. Enter an activation code first.';
       alertBox.style.display = 'block';
       return;
     }
